@@ -1,63 +1,353 @@
-# Atlas — editor de infraestrutura de rede
+<div align="center">
 
-Projeto documental em português, com campus 3D, bastidores, planta 2D, VLANs, endereçamento e máquinas virtuais. Um clique seleciona o bastidor. O arrasto move a posição quando desbloqueada; o botão «Ver interior 3D» abre o interior.
+# ATLAS
 
-## Oficina
+### See your infrastructure. Understand every connection.
+### Visualiza a tua infraestrutura. Compreende cada ligação.
 
-- **Cabos:** ligação entre portas na frente/traseira do equipamento, identificação, cores, categoria, comprimento documentado, VLANs e notas. «Percurso» permite marcar até 50 pontos na planta 2D. Painéis e tomadas usam canais independentes F1–R1, F2–R2, etc.
-- **Pisos e plantas:** criar pisos e salas, atribuir localizações, importar PNG/JPEG/WebP até 5 MB, calibrar a escala com dois pontos e uma distância. Filtrar por piso e sala.
-- **Montagem:** arrastar para uma unidade U ou entre bastidores, com verificação de sobreposição e capacidade. No interior 3D, escolher «Mover equipamento em U». Frente/traseira inclui conectores de dados e alimentação.
-- **Modelos:** guardar edifícios ou bastidores e criar cópias com equipamentos e ligações internas. IPs e gateways dos equipamentos copiados ficam vazios para evitar duplicados.
-- **Verificar:** detetar equipamentos sem ligação, IPs/gateways fora da sub-rede, VLANs inconsistentes, portas não documentadas e elevada ocupação.
-- **Simular:** desativar equipamentos/cabos e identificar perda de percurso até um destino. Simulação de conectividade documental, sem emulação de protocolos, ACLs ou falhas elétricas.
-- **Versões:** guardar até 200 marcos nomeados por utilizador, comparar com o estado atual ou outra versão, exportar e restaurar. A restauração guarda previamente uma cópia de segurança.
-- **Dossier:** HTML autónomo com plantas, pisos, inventário, redes, ocupação U, mapa de portas e verificações; impressão/PDF e CSV. A planta 2D também exporta SVG e PNG.
+**2D floor plans · 3D racks · Network inventory · Cable tracing · Technical documentation**
 
-## Persistência e execução
+**Plantas 2D · Bastidores 3D · Inventário de rede · Percursos de cabos · Documentação técnica**
 
-Worker ESM, identidade de sessão confiada ao cabeçalho da plataforma, projeto e versões em D1 (`DB`), imagens em R2 (`ATLAS_ASSETS`) com chaves isoladas por utilizador. Migrações Drizzle incrementais em `drizzle/`. O projeto mantém compatibilidade com os documentos version 3 existentes. Não envia comandos a equipamentos reais.
+[🇬🇧 English](#english) · [🇵🇹 Português](#portugues) · [Application / Aplicação](https://atlas-rede-3d.romaofilipe.chatgpt.site) · [Issues](https://github.com/RomaoFilipe/Atlas/issues)
 
-```sh
+![JavaScript](https://img.shields.io/badge/JavaScript-ES_Modules-F7DF1E?logo=javascript&logoColor=black)
+![Three.js](https://img.shields.io/badge/3D-Three.js-000000?logo=threedotjs&logoColor=white)
+![Runtime](https://img.shields.io/badge/Runtime-Worker_ESM-2563EB)
+![Storage](https://img.shields.io/badge/Storage-D1_%2B_R2-0F766E)
+
+</div>
+
+---
+
+<a id="english"></a>
+
+## 🇬🇧 English
+
+### Contents
+
+[Overview](#en-overview) · [Features](#en-features) · [Getting started](#en-start) · [Build and tests](#en-build) · [Architecture](#en-architecture) · [Security](#en-security) · [Scope and contributions](#en-scope)
+
+<a id="en-overview"></a>
+
+### What is Atlas?
+
+**Atlas is a visual editor for documenting IT infrastructure**, from buildings and rooms to individual rack units, network interfaces and power connections. It combines spatial views with inventory and connection records so that a team can understand where equipment is located and how it is connected.
+
+It is designed for IT teams, system administrators, support technicians and organisations that need to maintain clear infrastructure documentation across multiple spaces.
+
+Typical questions Atlas helps answer:
+
+- Where is this workstation, printer or server?
+- Which outlet and patch-panel channel does this cable use?
+- Which rack units and interfaces are occupied?
+- What documented path remains if a cable or device fails?
+- How can the current inventory and floor plans be handed over to another technician?
+
+> **Current scope:** Atlas is a documentation application with model-based connectivity analysis. It does not discover devices automatically, monitor live traffic or configure real hardware. The application interface is currently in Portuguese; this README is bilingual. Access to the hosted application may require an authorised account.
+
+<a id="en-features"></a>
+
+### Features
+
+| Area | Available capabilities |
+| :--- | :--- |
+| **Buildings and spaces** | Buildings, floors, rooms, equipment locations and imported floor-plan backgrounds. |
+| **Readable 2D maps** | Organised building/floor/room blocks, spatial floor plans, equipment symbols, labels, filters and selection-focused connections. |
+| **3D infrastructure** | Campus view, workstations and rack interiors with front/rear inspection, doors, numbered rack units and interactive ports. |
+| **Inventory** | Switches, firewalls, servers, storage, PCs, laptops, IP phones, Wi-Fi, printers, cameras, patch panels, outlets, UPSs, PDUs and VMs. |
+| **Addressing** | Documented IP addresses, subnets, gateways, VLANs and equipment specifications. |
+| **Cabling** | Port-to-port links, categories, colours, lengths, VLAN records, notes and manually marked routes. |
+| **Power** | Numbered PDU outputs, equipment power inputs and documented UPS/PDU connections. |
+| **Analysis** | Inventory checks, passive-channel cable tracing and simulated connectivity failures. |
+| **Reusable layouts** | Building and rack templates with equipment and internal links. |
+| **History** | Named versions, comparisons, restoration and undo/redo during editing. |
+| **Documentation** | Standalone HTML dossier, CSV, SVG, PNG and browser print/PDF. |
+| **Project backups** | Authenticated, encrypted `.atlasenc` exports and compatible legacy JSON imports. |
+
+#### A clearer 2D map
+
+- **Organised blocks** group equipment by building, floor and room without changing its recorded coordinates.
+- **Spatial floor plans** show one floor at a time. The all-floor view provides building navigation instead of overlapping floors.
+- Connections can follow the current selection, show all links on a floor or be hidden.
+- Cross-floor highlighted routes use a separate location-based diagram.
+- The all-floor PDF includes an overview and one page per floor, independent of the current filters.
+- PNG, JPEG and WebP floor-plan backgrounds can be imported, positioned and calibrated using two points and a known distance.
+
+#### Follow a cable, channel by channel
+
+Network outlets and patch panels preserve independent front/rear channel pairs: **F1 ↔ R1**, **F2 ↔ R2**, and so on. A two-channel outlet can therefore document two separate connections.
+
+The cabling assistant prepares three cable segments between a workstation and a switch, through an outlet and patch panel. It checks free interfaces and channels before applying the operation as a single undoable change.
+
+The cable-circuit view follows passive channels to active endpoints. This is distinct from IP routing or protocol emulation. Compact switches can be documented with the existing **Switch** type and an appropriate port count; a dedicated mini-switch workflow is not currently included.
+
+#### Inspect racks and workstations
+
+Rack editing checks unit capacity and overlapping equipment. Front and rear views expose data and power connections. Workstation records collect location, network information and documented peripherals, including monitor count and telephone extension.
+
+PDU outputs are individually numbered and can be labelled. Occupied outputs and power inputs are identified when documenting a new connection. Power views describe the recorded installation; they do not measure consumption or control sockets.
+
+<a id="en-start"></a>
+
+### First steps in the application
+
+1. Open **Exemplos** and choose a guided scenario.
+2. Explore **Planta 2D → Blocos organizados**, then select a floor or room.
+3. Select a workstation or rack to inspect its details and connections.
+4. Use **Onde vai dar este cabo?** to follow a documented cable circuit.
+5. Run **Verificar** to review model inconsistencies.
+6. Save a named version before larger changes and generate a **Dossier** for handover.
+
+| Example | What to explore |
+| :--- | :--- |
+| **Complete office** | Workstations, cabling, a main rack, server, storage and power connections. |
+| **Two-floor building** | Floor plans, rooms and fibre links between racks. |
+| **Failures and redundancy** | Deliberate documentation problems and alternative connectivity paths. |
+| **Municipal organisation** | A fictional municipality with 3 buildings, 12 departments and 24 complete workstations. |
+
+Loading an example first attempts to save the current project as a named version. If that backup fails, the example does not replace the current project. Example names, addresses and infrastructure records are fictional.
+
+<a id="en-build"></a>
+
+### Build and tests
+
+**Requirements:** Git, npm and a modern Node.js runtime with ES modules, the built-in test runner and Web Crypto support.
+
+```bash
+git clone https://github.com/RomaoFilipe/Atlas.git
+cd Atlas
 npm ci
 npm run build
 node --test tests/*.test.mjs
 ```
 
-Os testes cobrem validação, bloqueio e posição de bastidores, canais passivos, impacto de falhas, montagem em U, modelos, diferenças de versões, conflitos de gravação e isolamento de projetos/versões/imagens entre utilizadores.
+Build before running tests: server-side tests use the generated Worker. The build creates `dist/server/index.js` and copies the hosting configuration to `dist/.openai/hosting.json`.
 
-## Exemplos e edição visual
+| Command | Purpose |
+| :--- | :--- |
+| `npm ci` | Install the dependencies recorded in the lockfile. |
+| `npm run build` | Bundle public assets, shared validation and server modules into the Worker. |
+| `node --test tests/*.test.mjs` | Run model, network, layout, API, isolation and encrypted-export tests. |
+| `npm run db:generate` | Generate Drizzle migration files after schema changes; this does not apply migrations. |
 
-O botão **Exemplos** oferece escritório completo, edifício com dois pisos e falhas/redundância. Cada cenário tem passos guiados e descarga JSON. Abrir um cenário guarda primeiro o projeto atual numa versão nomeada; se a cópia não puder ser guardada, o projeto não é substituído.
+**Runtime setup:** the repository targets the configured Sites hosting environment. It does not currently provide an `npm run dev` script, a standalone login service or a generic one-command deployment.
 
-No mapa, escolha **Navegar**, **Mover objetos** ou **Ligar equipamentos**. No último modo, clique na origem e no destino: o formulário sugere interfaces livres e indica as ocupadas. **Ampliar mapa** ocupa a janela; Escape reduz a vista. A planta 2D aproxima com a roda do rato e mantém a escala durante o arrasto; **Enquadrar** recalcula os limites. Os bastidores bloqueados mantêm a posição. Arrastos cancelados não gravam alterações.
+A working deployment needs the Worker runtime, database migrations, a D1 binding named `DB`, an R2 binding named `ATLAS_ASSETS`, trusted platform authentication and the export keyring secret. Opening `public/index.html` alone does not provide the persistence API.
 
-**+ Posto de trabalho** cria uma secretária com cadeira, computador e um/dois monitores, orientação e características técnicas. O formulário adapta os campos ao tipo: PCs não pedem quantidade de portas nem unidades U; painéis mostram canais, PDUs saídas, VMs anfitrião/recursos e os restantes equipamentos características próprias. Os modelos 3D distinguem portáteis, PCs, impressoras, câmaras, tomadas, postos de trabalho e equipamentos de bastidor.
+The hosting configuration and encrypted-backup domain contain the current Site identity. A separate deployment needs deliberate configuration and a backup migration strategy; encrypted exports are not automatically portable between Sites.
 
-## Réguas de tomadas (PDU)
+<a id="en-architecture"></a>
 
-Em **PDU / Energia**, adicione uma régua ao bastidor, configure a quantidade de tomadas, a origem/circuito e o tipo de conector. Cada saída OUT1, OUT2, etc. aparece numerada e pode ter uma etiqueta. Clique numa saída livre para escolher equipamento e fonte (PSU1/PSU2); as entradas ocupadas não são oferecidas. A lista permite editar, seguir ou desligar o cabo no modelo. **Ver traseira 3D** mostra as tomadas e respetiva numeração. O dossier inclui o mapa de alimentação por régua, incluindo saídas livres. O exemplo de escritório contém PDU-A ligada à UPS, ao servidor, ao switch e à firewall. A representação é documental, sem medição de consumo ou comando de tomadas reais.
+### Architecture and repository guide
 
-### Assistente de cablagem
-Em **Cabos → Assistente de cablagem**, escolha computador/posto/portátil e switch, depois tomada e patch panel. O assistente sugere interfaces livres e ordena os equipamentos intermédios pela localização. Os canais F/R têm de estar ambos livres. A revisão apresenta os três segmentos, categoria e VLAN documentada do posto. A confirmação cria todos os cabos numa única alteração anulável e destaca o percurso no mapa. Revalida o estado antes de guardar; não modifica ligações existentes nem configura hardware real. Comprimentos ficam por definir e podem ser editados nos cabos.
+| Layer / path | Responsibility |
+| :--- | :--- |
+| `public/` | Browser interface, ES modules, styles and visualisation. |
+| `public/vendor/` | Vendored Three.js and OrbitControls. |
+| `public/model.js` | Project model, normalisation and shared validation. |
+| `public/network.js`, `public/cabling*.js` | Port model, tracing and cabling workflows. |
+| `public/plan*.js`, `public/scene.js` | 2D plans, printing and 3D scenes. |
+| `worker/` | Project API, versions, assets and encrypted import/export. |
+| `db/schema.ts`, `drizzle/` | Database schema and migration history. |
+| `scripts/build.mjs` | Worker build process. |
+| `tests/` | Automated checks for data and application behaviour. |
+| `docs/export-security.md` | Detailed backup security and recovery model, in Portuguese. |
+| `.env.example` | Export keyring placeholder; not a working secret. |
+| `.openai/hosting.json` | Existing Sites deployment configuration. |
 
-### Postos, circuitos e planta 2D
-- **Pesquisar posto** consulta nomes, códigos, IP e características; a ficha reúne periféricos documentados, rede e alimentação. Os campos telefone/extensão, monitores e tomada elétrica são editáveis no equipamento; dados em falta aparecem como não documentados.
-- **Onde vai dar este cabo?** e os botões por porta seguem canais passivos F/R até às extremidades ativas, sem misturar os outros canais do painel ou representar encaminhamento IP. O percurso pode ser destacado na planta, com enquadramento automático e contexto esbatido.
-- A planta abre em navegação, tem maior área útil, camadas independentes de energia, etiquetas e grelha, cabos com área de clique ampliada e comandos para enquadrar o mapa ou centrar a seleção. Os documentos SVG/PNG continuam a incluir legenda e carimbo completos.
+Project documents use schema **version 3**. D1 stores projects and named versions by owner; R2 stores imported floor-plan assets. Revision checks detect conflicting saves rather than silently overwriting a newer project.
 
-### Organização do espaço de trabalho
-Navegação e ferramentas agrupadas à esquerda (Estrutura, Ligações e energia, Análise e documentação), mapa central e seleção à direita. Os painéis podem ser recolhidos; em ecrãs pequenos abrem como painéis laterais. O menu **Adicionar** concentra criação de objetos e postos; **Projeto** reúne guardar/importar/exportar/novo. O estado de gravação permanece junto ao título do mapa. A lista do inventário é expansível e abre ao pesquisar. As ligações e portas da seleção ficam em secções expansíveis. O mapa inicia em navegação, com uma única barra de vistas e comandos de anular/refazer compactos e identificados.
+<a id="en-security"></a>
 
-### Acabamento dos bastidores e planta
-Os bastidores mostram painéis laterais, calhas, pés, porta perfurada e régua numerada em U. Em **Bastidor 3D**, o botão **Abrir / Fechar porta** acompanha a face selecionada; a inspeção começa com a porta aberta. Servidores e armazenamento têm gavetas, UPS apresenta visor, e switch, firewall, patch panel e PDU têm frentes distintas. As portas interativas continuam a corresponder às interfaces configuradas; o equipamento é ilustrativo.
-A planta inclui símbolos próprios por tipo, preenchimento discreto das salas, títulos de edifícios acima do contorno e etiquetas distribuídas para evitar outras etiquetas e títulos. Linhas finas ligam cada etiqueta deslocada à posição real do objeto. A exportação mantém os mesmos símbolos e a legenda.
+### Security, backups and recovery
 
-### Backups cifrados
-**Projeto → Exportar cifrado** descarrega `.atlasenc` (AES-256-GCM), que **Importar projeto** abre na mesma conta do Atlas. Exportações de versões e recuperação de rascunhos também usam este formato. A chave é um segredo de execução do servidor; a aplicação bloqueia a exportação se ele não estiver disponível. PDFs, imagens, CSV e HTML exigem confirmação de que são ficheiros legíveis. JSON antigo ainda pode ser importado mediante aviso. Consulte `docs/export-security.md` para modelo de proteção, configuração, rotação, limites e recuperação. Os ficheiros dependem da preservação da chave original e da conta/Site.
+- Server APIs obtain identity from the platform-provided `oai-authenticated-user-id` header. A deployment must ensure that this identity comes from trusted infrastructure, not an arbitrary client header.
+- The runtime secret `ATLAS_EXPORT_KEYRING` supplies the keys for `.atlasenc` files. Keep actual keys out of source control and browser assets.
+- Exported project files use **AES-256-GCM** and per-file key derivation bound to the user and Site.
+- Keep old keys when rotating the keyring. Losing a required key can make its backups unrecoverable.
+- Encrypted backups depend on the original account/Site context. Floor-plan images remain referenced assets; the export is not a self-contained image archive.
+- PDF, SVG, PNG, CSV and HTML exports are readable files and do not inherit `.atlasenc` protection.
 
-### Planta organizada e PDF completo
-**Planta 2D → Blocos organizados** apresenta edifícios separados e pisos selecionáveis. Cada piso agrupa bastidores e equipamentos por sala, com identificação, IP/VLAN, extensão telefónica e U quando aplicável. Os blocos crescem com o inventário sem alterar coordenadas do projeto. **Posições / planta** mantém a edição espacial e fundos importados; o modo Mover e os percursos destacados usam esta vista.
-**PDF · todos os pisos** ignora os filtros atuais: imprime uma visão geral e uma folha por piso, agrupadas por edifício e ordenadas pelo nível, com título e paginação. O mesmo conjunto é incluído no dossier. Plantas importadas mantêm o respetivo fundo. A gravação em PDF usa a opção Guardar como PDF do navegador; a confirmação de exportação legível mantém-se.
+Encryption is performed on the server. This is **not end-to-end or zero-knowledge encryption**, and it does not describe encryption of every storage layer. See [the security document](docs/export-security.md) before planning production recovery.
 
-### Leitura da planta por piso
-A vista espacial já não sobrepõe pisos: sem piso selecionado apresenta o navegador de edifícios; **Planta do piso** abre o piso do objeto selecionado, ou o primeiro disponível. As etiquetas são distribuídas em células dentro da sala quando existe capacidade, mantendo as coordenadas originais; apenas a seleção mostra a linha até à posição documentada. **Ligações: Da seleção** é o modo inicial, com opções explícitas para mostrar todas as ligações do piso ou ocultá-las. As camadas secundárias ficam num menu recolhível. Percursos que atravessam pisos usam um diagrama separado por localização, apenas com as extremidades e cabos selecionados. Os PDFs continuam a incluir todos os pisos.
+<a id="en-scope"></a>
+
+### Scope, contributions and licensing
+
+Atlas currently provides per-user projects and documentation tools. Team workspaces, shared editing, billing, live monitoring and automated discovery are not included. Inventory exports may support internal documentation processes, but the application does not claim compliance certification.
+
+For a bug report, include the affected view, reproduction steps, expected behaviour and a sanitised example when possible. Never attach real credentials, export keys or sensitive infrastructure records to a public issue.
+
+For contributions, describe the user problem, keep model changes compatible where possible, and run the relevant tests after building. Changes to authentication, ownership or encryption require particular care.
+
+**License:** no project-level `LICENSE` file is currently included. Do not assume a specific open-source licence. Third-party components retain their own licence notices.
+
+[Back to top](#atlas) · [Ler em português ↓](#portugues)
+
+---
+
+<a id="portugues"></a>
+
+## 🇵🇹 Português
+
+### Índice
+
+[Apresentação](#pt-apresentacao) · [Funcionalidades](#pt-funcionalidades) · [Primeiros passos](#pt-inicio) · [Compilação e testes](#pt-testes) · [Arquitetura](#pt-arquitetura) · [Segurança](#pt-seguranca) · [Âmbito e contributos](#pt-ambito)
+
+<a id="pt-apresentacao"></a>
+
+### O que é o Atlas?
+
+O **Atlas é um editor visual para documentar infraestruturas informáticas**, desde edifícios e salas até unidades de bastidor, interfaces de rede e ligações de alimentação. Reúne vistas espaciais, inventário e registos de ligações para facilitar a identificação dos equipamentos e a compreensão da rede.
+
+Destina-se a equipas de informática, administradores de sistemas, técnicos de suporte e organizações que precisam de manter documentação clara sobre vários espaços.
+
+Exemplos de perguntas a que o Atlas ajuda a responder:
+
+- Onde está este posto de trabalho, impressora ou servidor?
+- Por que tomada e canal do patch panel passa este cabo?
+- Que unidades do bastidor e interfaces estão ocupadas?
+- Que percurso documentado permanece disponível se um cabo ou equipamento falhar?
+- Como entregar o inventário e as plantas atuais a outro técnico?
+
+> **Âmbito atual:** o Atlas é uma aplicação documental com análise de conectividade baseada no modelo. Não descobre equipamentos automaticamente, não monitoriza tráfego real nem configura hardware. A interface está atualmente em português; este README é bilingue. O acesso à aplicação alojada pode exigir uma conta autorizada.
+
+<a id="pt-funcionalidades"></a>
+
+### Funcionalidades
+
+| Área | Capacidades disponíveis |
+| :--- | :--- |
+| **Edifícios e espaços** | Edifícios, pisos, salas, localização de equipamentos e plantas de fundo importadas. |
+| **Mapas 2D legíveis** | Blocos organizados por edifício/piso/sala, plantas espaciais, símbolos, etiquetas, filtros e ligações da seleção. |
+| **Infraestrutura 3D** | Vista de campus, postos e interiores de bastidores com frente/traseira, portas, unidades U numeradas e interfaces interativas. |
+| **Inventário** | Switches, firewalls, servidores, armazenamento, PCs, portáteis, telefones IP, Wi-Fi, impressoras, câmaras, patch panels, tomadas, UPS, PDU e VMs. |
+| **Endereçamento** | Registo de IPs, sub-redes, gateways, VLANs e características técnicas. |
+| **Cablagem** | Ligações entre portas, categorias, cores, comprimentos, VLANs documentadas, notas e percursos marcados manualmente. |
+| **Energia** | Saídas PDU numeradas, entradas de alimentação e ligações documentadas entre UPS, PDU e equipamentos. |
+| **Análise** | Verificação do inventário, seguimento de canais passivos e simulação de falhas de conectividade. |
+| **Modelos reutilizáveis** | Cópias de edifícios e bastidores com equipamentos e ligações internas. |
+| **Histórico** | Versões nomeadas, comparação, restauro e anular/refazer durante a edição. |
+| **Documentação** | Dossier HTML autónomo, CSV, SVG, PNG e impressão/PDF pelo navegador. |
+| **Cópias do projeto** | Exportações `.atlasenc` cifradas e autenticadas e importação de JSON antigo compatível. |
+
+#### Uma planta 2D mais clara
+
+- **Blocos organizados** agrupam os equipamentos por edifício, piso e sala sem alterar as coordenadas registadas.
+- **Posições / planta** apresenta um piso de cada vez. A vista de todos os pisos permite navegar pelos edifícios, sem sobrepor plantas.
+- As ligações podem acompanhar a seleção, mostrar todos os cabos do piso ou ficar ocultas.
+- Percursos destacados entre pisos usam um diagrama separado por localização.
+- O PDF de todos os pisos inclui uma visão geral e uma página por piso, independentemente dos filtros ativos.
+- É possível importar plantas PNG, JPEG e WebP, posicioná-las e calibrar a escala com dois pontos e uma distância conhecida.
+
+#### Seguir um cabo, canal a canal
+
+As tomadas de rede e os patch panels mantêm pares independentes de frente/traseira: **F1 ↔ R1**, **F2 ↔ R2**, e assim sucessivamente. Uma tomada configurada com dois canais permite documentar duas ligações distintas.
+
+O assistente de cablagem prepara três segmentos entre um posto e um switch, através de uma tomada e de um patch panel. Verifica as interfaces e os canais livres antes de aplicar a operação numa única alteração anulável.
+
+A vista de circuito segue os canais passivos até às extremidades ativas. Este percurso é diferente de encaminhamento IP ou emulação de protocolos. Os switches compactos podem ser registados com o tipo **Switch** e o número de portas adequado; ainda não existe um fluxo específico para mini-switches.
+
+#### Inspecionar bastidores e postos
+
+A edição de bastidores verifica a capacidade em U e a sobreposição de equipamentos. As vistas de frente e traseira expõem as ligações de dados e alimentação. As fichas dos postos reúnem localização, rede e periféricos documentados, incluindo número de monitores e extensão telefónica.
+
+As saídas das PDU são numeradas individualmente e podem receber etiquetas. A aplicação identifica saídas e entradas de alimentação ocupadas ao registar uma nova ligação. As vistas de energia representam a instalação documentada; não medem consumos nem comandam tomadas.
+
+<a id="pt-inicio"></a>
+
+### Primeiros passos na aplicação
+
+1. Abra **Exemplos** e escolha um cenário guiado.
+2. Explore **Planta 2D → Blocos organizados** e selecione um piso ou sala.
+3. Selecione um posto ou bastidor para consultar os detalhes e ligações.
+4. Use **Onde vai dar este cabo?** para seguir um circuito documentado.
+5. Execute **Verificar** para analisar incoerências do modelo.
+6. Guarde uma versão nomeada antes de alterações maiores e gere um **Dossier** para passagem de informação.
+
+| Exemplo | O que explorar |
+| :--- | :--- |
+| **Escritório completo** | Postos, cablagem, bastidor principal, servidor, armazenamento e alimentação. |
+| **Edifício com dois pisos** | Plantas, salas e fibra entre bastidores. |
+| **Falhas e redundância** | Problemas documentais propositados e percursos alternativos de conectividade. |
+| **Câmara Municipal** | Município fictício com 3 edifícios, 12 departamentos e 24 postos completos. |
+
+A abertura de um exemplo tenta primeiro guardar o projeto atual numa versão nomeada. Se essa cópia falhar, o exemplo não substitui o projeto. Os nomes, endereços e registos de infraestrutura dos exemplos são fictícios.
+
+<a id="pt-testes"></a>
+
+### Compilação e testes
+
+**Requisitos:** Git, npm e uma versão moderna de Node.js com módulos ES, executor de testes integrado e suporte para Web Crypto.
+
+```bash
+git clone https://github.com/RomaoFilipe/Atlas.git
+cd Atlas
+npm ci
+npm run build
+node --test tests/*.test.mjs
+```
+
+Execute a compilação antes dos testes: os testes do servidor utilizam o Worker gerado. A compilação cria `dist/server/index.js` e copia a configuração de alojamento para `dist/.openai/hosting.json`.
+
+| Comando | Finalidade |
+| :--- | :--- |
+| `npm ci` | Instalar as dependências registadas no lockfile. |
+| `npm run build` | Reunir recursos públicos, validação partilhada e módulos do servidor no Worker. |
+| `node --test tests/*.test.mjs` | Executar testes do modelo, rede, plantas, API, isolamento e exportações cifradas. |
+| `npm run db:generate` | Gerar migrações Drizzle após alterações ao esquema; não aplica as migrações. |
+
+**Configuração de execução:** o repositório destina-se ao ambiente Sites configurado. Ainda não inclui um comando `npm run dev`, um serviço autónomo de autenticação ou uma instalação genérica com um único comando.
+
+Uma instalação funcional precisa do runtime Worker, das migrações da base de dados, de uma ligação D1 chamada `DB`, de uma ligação R2 chamada `ATLAS_ASSETS`, da autenticação confiável da plataforma e do segredo com as chaves de exportação. Abrir apenas `public/index.html` não disponibiliza a API de persistência.
+
+A configuração de alojamento e o domínio dos backups cifrados contêm a identidade do Site atual. Uma instalação separada exige configuração própria e uma estratégia de migração dos backups; as exportações cifradas não são automaticamente portáveis entre Sites.
+
+<a id="pt-arquitetura"></a>
+
+### Arquitetura e organização do repositório
+
+| Camada / caminho | Responsabilidade |
+| :--- | :--- |
+| `public/` | Interface no navegador, módulos ES, estilos e visualização. |
+| `public/vendor/` | Cópias locais de Three.js e OrbitControls. |
+| `public/model.js` | Modelo do projeto, normalização e validação partilhada. |
+| `public/network.js`, `public/cabling*.js` | Portas, percursos e fluxos de cablagem. |
+| `public/plan*.js`, `public/scene.js` | Plantas 2D, impressão e cenas 3D. |
+| `worker/` | API do projeto, versões, recursos e importação/exportação cifrada. |
+| `db/schema.ts`, `drizzle/` | Esquema da base de dados e histórico de migrações. |
+| `scripts/build.mjs` | Processo de compilação do Worker. |
+| `tests/` | Verificações automáticas dos dados e do comportamento da aplicação. |
+| `docs/export-security.md` | Modelo detalhado de segurança e recuperação dos backups. |
+| `.env.example` | Exemplo de configuração das chaves; não contém um segredo funcional. |
+| `.openai/hosting.json` | Configuração existente de publicação em Sites. |
+
+Os documentos do projeto usam o esquema **versão 3**. A D1 guarda projetos e versões nomeadas por proprietário; a R2 guarda imagens de plantas importadas. A verificação de revisões deteta conflitos de gravação e evita substituir silenciosamente uma versão mais recente.
+
+<a id="pt-seguranca"></a>
+
+### Segurança, backups e recuperação
+
+- As APIs recebem a identidade pelo cabeçalho `oai-authenticated-user-id` fornecido pela plataforma. A instalação deve garantir que esta identidade vem de infraestrutura confiável, não de um cabeçalho arbitrário enviado pelo cliente.
+- O segredo de execução `ATLAS_EXPORT_KEYRING` fornece as chaves dos ficheiros `.atlasenc`. As chaves reais não devem entrar no repositório nem nos recursos do navegador.
+- Os ficheiros exportados usam **AES-256-GCM**, com derivação de chave por ficheiro vinculada ao utilizador e ao Site.
+- Preserve as chaves antigas durante a rotação. A perda de uma chave necessária pode tornar os respetivos backups irrecuperáveis.
+- Os backups cifrados dependem do contexto da conta/Site original. As imagens de plantas continuam como recursos referenciados; a exportação não é um arquivo autónomo dessas imagens.
+- PDF, SVG, PNG, CSV e HTML são ficheiros legíveis e não recebem a proteção `.atlasenc`.
+
+A cifra ocorre no servidor. **Não é encriptação ponta a ponta nem de conhecimento zero**, e não corresponde à cifra de todas as camadas de armazenamento. Consulte [a documentação de segurança](docs/export-security.md) antes de definir a recuperação em produção.
+
+<a id="pt-ambito"></a>
+
+### Âmbito, contributos e licença
+
+O Atlas disponibiliza atualmente projetos por utilizador e ferramentas de documentação. Espaços de equipa, edição partilhada, faturação, monitorização em tempo real e descoberta automática não estão incluídos. As exportações de inventário podem apoiar processos internos de documentação, mas a aplicação não reivindica certificação de conformidade.
+
+Ao comunicar um erro, indique a vista afetada, os passos para reproduzir, o resultado esperado e, se possível, um exemplo sem dados sensíveis. Nunca anexe credenciais reais, chaves de exportação ou registos sensíveis de infraestrutura a uma issue pública.
+
+Para contribuir, descreva o problema do utilizador, mantenha a compatibilidade do modelo sempre que possível e execute os testes relevantes após a compilação. Alterações à autenticação, propriedade dos dados ou cifra exigem especial cuidado.
+
+**Licença:** o repositório ainda não inclui um ficheiro `LICENSE` do projeto. Não se deve presumir uma licença open source específica. Os componentes de terceiros mantêm os respetivos avisos de licença.
+
+[Voltar ao início](#atlas) · [Read in English ↑](#english)
