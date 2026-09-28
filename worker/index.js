@@ -1,0 +1,14 @@
+// Private, per-user project storage. Sites forwards authenticated identity.
+const json=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'}});
+export default {async fetch(request,env){const url=new URL(request.url);const sealed=await secureExportAPI(request,env,url,request.headers.get('oai-authenticated-user-id'));if(sealed)return sealed;const special=await featureAPI(request,env,url,request.headers.get('oai-authenticated-user-id'));if(special)return special;if(url.pathname==='/api/project'){
+ const owner=request.headers.get('oai-authenticated-user-id');if(!owner)return json({error:'Inicie sessão para carregar ou guardar o projeto.'},401);
+ try{if(!env.DB)return json({error:'O armazenamento está temporariamente indisponível.'},503);
+ if(request.method==='GET'){const row=await env.DB.prepare('SELECT document, revision FROM atlas_projects WHERE owner = ?').bind(owner).first();return json({project:row?JSON.parse(row.document):null,revision:row?.revision||0});}
+ if(request.method==='PUT'){const origin=request.headers.get('origin');if(origin&&origin!==url.origin)return json({error:'Origem não autorizada.'},403);const body=await request.text();if(body.length>1500000)return json({error:'Projeto demasiado grande.'},413);let input;try{input=JSON.parse(body);validate(input.project);if(!Number.isInteger(input.revision)||input.revision<0)throw new Error('Revisão inválida.');}catch(err){return json({error:err.message},400);}const doc=JSON.stringify(input.project),now=new Date().toISOString();let result;
+ if(input.revision===0)result=await env.DB.prepare('INSERT INTO atlas_projects (owner,document,revision,updated_at) VALUES (?,?,1,?) ON CONFLICT(owner) DO NOTHING').bind(owner,doc,now).run();
+ else result=await env.DB.prepare('UPDATE atlas_projects SET document = ?, revision = revision + 1, updated_at = ? WHERE owner = ? AND revision = ?').bind(doc,now,owner,input.revision).run();
+ if(!result.meta?.changes)return json({error:'O projeto foi alterado noutra sessão. Recarregue antes de guardar.'},409);return json({revision:input.revision+1});}
+ return json({error:'Método não permitido.'},405);
+ }catch(err){console.error('Project storage failure',err.message);return json({error:'Não foi possível aceder ao projeto. As alterações continuam neste navegador; tente guardar novamente.'},503);}}
+ const key=url.pathname==='/'?'/index.html':url.pathname;const file=ASSETS[key];if(!file)return new Response('Not found',{status:404});if(!['GET','HEAD'].includes(request.method))return new Response('Method not allowed',{status:405});return new Response(request.method==='HEAD'?null:file.body,{headers:{'Content-Type':file.type,'Cache-Control':'no-cache','X-Content-Type-Options':'nosniff'}});
+}};
