@@ -94,6 +94,10 @@ PDU outputs are individually numbered and can be labelled. Occupied outputs and 
 
 <a id="en-start"></a>
 
+### A task-based workspace
+
+The application opens on the organised 2D map. Five persistent areas separate **Map**, **Equipment**, **Connections**, **Checks** and **Documentation**. Equipment has a dedicated list rather than a table below the canvas. Shared search includes names, IPs, technical specifications, responsible people and serial numbers; visible scope and a clear-filters action explain the current results. Selected objects use **Sheet**, **Connections** and **Location** tabs. Editing groups identity, network and installation fields, while advanced specifications and exports stay in expandable sections. Tool dialogs show only related tasks.
+
 ### First steps in the application
 
 1. Open **Exemplos** and choose a guided scenario.
@@ -264,6 +268,10 @@ A edição de bastidores verifica a capacidade em U e a sobreposição de equipa
 As saídas das PDU são numeradas individualmente e podem receber etiquetas. A aplicação identifica saídas e entradas de alimentação ocupadas ao registar uma nova ligação. As vistas de energia representam a instalação documentada; não medem consumos nem comandam tomadas.
 
 <a id="pt-inicio"></a>
+
+### Um espaço de trabalho organizado por tarefas
+
+A aplicação abre no mapa 2D organizado. Cinco áreas fixas separam **Mapa**, **Equipamentos**, **Ligações**, **Verificação** e **Documentação**. Os equipamentos têm uma lista própria, em vez de uma tabela por baixo do mapa. A pesquisa partilhada inclui nomes, IPs, características, responsáveis e números de série; o âmbito visível e a ação de limpar filtros ajudam a interpretar os resultados. Os objetos selecionados têm separadores **Ficha**, **Ligações** e **Localização**. A edição agrupa identificação, rede e instalação; as características avançadas e as exportações ficam em secções expansíveis. As janelas de ferramentas apresentam apenas tarefas relacionadas.
 
 ### Primeiros passos na aplicação
 

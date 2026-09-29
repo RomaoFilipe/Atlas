@@ -1,5 +1,6 @@
+import {initWorkspaceNavigation} from './workspace-navigation.js';
 // Move existing controls so their handlers and data remain intact.
-export function initLayout(){
+export function initLayout(app){
  const $=s=>document.querySelector(s),body=document.body;
  const panel=(id,title)=>{const el=document.createElement('details');el.id=id;el.className='nav-group';el.innerHTML='<summary>'+title+'</summary><div class="nav-group-body"></div>';return el;};
  $('.sidebar').id='navigationPanel';$('.sidebar').setAttribute('aria-label','Navegação e ferramentas');
@@ -33,7 +34,8 @@ export function initLayout(){
  document.addEventListener('keydown',ev=>{if(ev.key==='Escape'){document.querySelectorAll('.dropdown[open]').forEach(d=>d.open=false);if(narrow()){body.classList.remove('open-navigation','open-selection');sync();}}});
  document.addEventListener('click',ev=>{document.querySelectorAll('.dropdown[open]').forEach(d=>{if(!d.contains(ev.target)||ev.target.closest('button'))d.open=false;});if(narrow()&&ev.target.closest('[data-feature],#stationFinder,[data-manage]')){body.classList.remove('open-navigation');sync();}});
  window.addEventListener('resize',sync);sync();
- return {onSelection(){if(narrow()){body.classList.remove('open-navigation');body.classList.add('open-selection');}else body.classList.remove('hide-selection');sync();},afterRender(){
+ const navigation=initWorkspaceNavigation(app);
+ return {showMap:()=>navigation.showMap(),onSelection(){if(narrow()){body.classList.remove('open-navigation');body.classList.add('open-selection');}else body.classList.remove('hide-selection');sync();},afterRender(){
   // Rack actions appear only when inspecting that view; the inspector holds campus rack actions.
   if($('#mapView').value!=='rack')$('#rackControls').hidden=true;
   $('#mapEditSelection').disabled=!$('#editSelected');
@@ -42,6 +44,6 @@ export function initLayout(){
    const section=document.createElement('details');section.className='inspector-group';const summary=document.createElement('summary');summary.textContent=heading.textContent;section.append(summary);heading.before(section);let sibling=heading.nextElementSibling;heading.remove();
    while(sibling&&(sibling.matches('.connection,.port-face-controls,.port-grid,[data-follow-circuit],#configurePorts')||(heading.textContent.startsWith('Portas ·')&&sibling.matches('p.notice')))){const next=sibling.nextElementSibling;section.append(sibling);sibling=next;}
   }
-
+  navigation.afterRender();
  }};
 }
