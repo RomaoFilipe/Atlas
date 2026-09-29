@@ -375,3 +375,9 @@ Para contribuir, descreva o problema do utilizador, mantenha a compatibilidade d
 **Licença:** o repositório ainda não inclui um ficheiro `LICENSE` do projeto. Não se deve presumir uma licença open source específica. Os componentes de terceiros mantêm os respetivos avisos de licença.
 
 [Voltar ao início](#atlas) · [Read in English ↑](#english)
+
+### Simplified network connections / Ligações de rede simplificadas
+
+**English:** Select a device and choose **Ligar à rede**. Search named destinations, with the current room listed first, choose a free outlet and review before saving. Wall plates show independent A/B outlets and their documented upstream path. Mini-switch uplinks are reserved in the suggested choices. Occupied outlets open the existing connection for review/editing. **Identificar mais tarde** saves a pending port without inventing a cable; creating its connection clears that marker. Technical cabling remains available. New equipment supports quantities of 1–20, with numbered names, without shared IP addresses or rack placement. Recorded paths do not certify physical connectivity.
+
+**Português:** Selecione um equipamento e escolha **Ligar à rede**. Procure o destino pelo nome, com os equipamentos da mesma sala primeiro, escolha uma saída livre e confirme. As tomadas apresentam saídas A/B independentes e o respetivo percurso registado até à rede. As sugestões respeitam a porta principal dos mini-switches. Uma saída ocupada abre a ligação existente para consulta/alteração. **Identificar mais tarde** guarda uma porta pendente sem inventar cabos; a criação da ligação retira essa indicação. As opções técnicas continuam disponíveis. Pode criar 1–20 equipamentos iguais, com nomes numerados, sem repetir IPs nem posições no bastidor. Um percurso registado não comprova a ligação física.
