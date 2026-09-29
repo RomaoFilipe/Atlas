@@ -25,7 +25,7 @@ A instalação inicial mantém a chave no serviço de segredos de Sites. Não fo
 
 Esta é cifra do ficheiro exportado, efetuada no servidor, não E2EE/zero-knowledge. O servidor processa o documento em claro. Um administrador com controlo do serviço e da chave pode decifrá-lo; uma conta/sessão comprometida pode consultar os seus dados. Não é matematicamente possível garantir que apenas uma interface específica possa ler dados quando alguém obtém a chave.
 
-Não modifica o armazenamento do projeto, versões, plantas em R2 ou rascunhos locais. As imagens de plantas mantêm referências aos ativos da mesma conta; o backup do projeto não é um arquivo autónomo desses ativos. JSONs exportados anteriormente continuam legíveis. Exemplos fictícios incorporados continuam disponíveis em JSON.
+Não modifica o armazenamento do projeto, versões, plantas em R2 ou rascunhos locais. As imagens de plantas e os anexos de equipamentos mantêm referências aos ativos da mesma conta; o backup do projeto não é um arquivo autónomo desses ativos. JSONs exportados anteriormente continuam legíveis. Exemplos fictícios incorporados continuam disponíveis em JSON.
 
 SVG, PNG, impressão/PDF, HTML do dossier e CSV são exportações legíveis, com aviso e confirmação explícitos. Não têm a proteção `.atlasenc`. Esta implementação não impede fotografias, capturas de ecrã ou cópias feitas por utilizadores autorizados.
 

@@ -80,7 +80,11 @@ Network outlets and patch panels preserve independent front/rear channel pairs: 
 
 The cabling assistant prepares three cable segments between a workstation and a switch, through an outlet and patch panel. It checks free interfaces and channels before applying the operation as a single undoable change.
 
-The cable-circuit view follows passive channels to active endpoints. This is distinct from IP routing or protocol emulation. Compact switches can be documented with the existing **Switch** type and an appropriate port count; a dedicated mini-switch workflow is not currently included.
+The cable-circuit view follows passive channels to active endpoints. This is distinct from IP routing or protocol emulation. The dedicated **Mini-switch** type provides 2–16 numbered ports, a configurable uplink and occupied/free connection cards. New network outlets default to two independent RJ45 channels. Cable tracing can continue through the designated mini-switch uplink without including sibling endpoints.
+
+#### Equipment records
+
+Every device has a record for its responsible person, status, serial number, warranty expiry and notes. Upload up to 20 photographs (PNG/JPEG/WebP) or PDF documents, up to 5 MB each, and maintain up to 100 dated, editable intervention records with technician, work performed and outcome. Attachments are stored per account; PDFs download as documents. Removing an attachment unlinks it from the current record while preserving earlier version references. These manual intervention records are not an immutable audit log. Template copies start without identity records, attachments or interventions.
 
 #### Inspect racks and workstations
 
@@ -166,7 +170,7 @@ Project documents use schema **version 3**. D1 stores projects and named version
 - The runtime secret `ATLAS_EXPORT_KEYRING` supplies the keys for `.atlasenc` files. Keep actual keys out of source control and browser assets.
 - Exported project files use **AES-256-GCM** and per-file key derivation bound to the user and Site.
 - Keep old keys when rotating the keyring. Losing a required key can make its backups unrecoverable.
-- Encrypted backups depend on the original account/Site context. Floor-plan images remain referenced assets; the export is not a self-contained image archive.
+- Encrypted backups depend on the original account/Site context. Floor-plan images and equipment attachments remain referenced assets; the export is not a self-contained image archive.
 - PDF, SVG, PNG, CSV and HTML exports are readable files and do not inherit `.atlasenc` protection.
 
 Encryption is performed on the server. This is **not end-to-end or zero-knowledge encryption**, and it does not describe encryption of every storage layer. See [the security document](docs/export-security.md) before planning production recovery.
@@ -247,7 +251,11 @@ As tomadas de rede e os patch panels mantêm pares independentes de frente/trase
 
 O assistente de cablagem prepara três segmentos entre um posto e um switch, através de uma tomada e de um patch panel. Verifica as interfaces e os canais livres antes de aplicar a operação numa única alteração anulável.
 
-A vista de circuito segue os canais passivos até às extremidades ativas. Este percurso é diferente de encaminhamento IP ou emulação de protocolos. Os switches compactos podem ser registados com o tipo **Switch** e o número de portas adequado; ainda não existe um fluxo específico para mini-switches.
+A vista de circuito segue os canais passivos até às extremidades ativas. Este percurso é diferente de encaminhamento IP ou emulação de protocolos. O tipo **Mini-switch** disponibiliza 2–16 portas numeradas, uma porta configurável de ligação à rede principal e cartões de portas ocupadas/livres. As novas tomadas de rede têm duas saídas RJ45 independentes por predefinição. O percurso pode continuar pelo uplink do mini-switch sem incluir os equipamentos das outras saídas.
+
+#### Fichas de equipamento
+
+Cada equipamento tem uma ficha com responsável, estado, número de série, fim da garantia e notas. Pode carregar até 20 fotografias (PNG/JPEG/WebP) ou documentos PDF, até 5 MB por ficheiro, e manter até 100 intervenções editáveis, com data, técnico, trabalho realizado e resultado. Os anexos ficam isolados por conta; os PDF são descarregados como documentos. Remover um anexo retira a referência da ficha atual e preserva as referências das versões anteriores. As intervenções são registos manuais, não um registo de auditoria imutável. As cópias de modelos começam sem fichas de identificação, anexos ou intervenções.
 
 #### Inspecionar bastidores e postos
 
@@ -333,7 +341,7 @@ Os documentos do projeto usam o esquema **versão 3**. A D1 guarda projetos e ve
 - O segredo de execução `ATLAS_EXPORT_KEYRING` fornece as chaves dos ficheiros `.atlasenc`. As chaves reais não devem entrar no repositório nem nos recursos do navegador.
 - Os ficheiros exportados usam **AES-256-GCM**, com derivação de chave por ficheiro vinculada ao utilizador e ao Site.
 - Preserve as chaves antigas durante a rotação. A perda de uma chave necessária pode tornar os respetivos backups irrecuperáveis.
-- Os backups cifrados dependem do contexto da conta/Site original. As imagens de plantas continuam como recursos referenciados; a exportação não é um arquivo autónomo dessas imagens.
+- Os backups cifrados dependem do contexto da conta/Site original. As imagens de plantas e os anexos de equipamentos continuam como recursos referenciados; a exportação não é um arquivo autónomo dessas imagens.
 - PDF, SVG, PNG, CSV e HTML são ficheiros legíveis e não recebem a proteção `.atlasenc`.
 
 A cifra ocorre no servidor. **Não é encriptação ponta a ponta nem de conhecimento zero**, e não corresponde à cifra de todas as camadas de armazenamento. Consulte [a documentação de segurança](docs/export-security.md) antes de definir a recuperação em produção.

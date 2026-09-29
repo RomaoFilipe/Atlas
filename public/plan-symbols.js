@@ -8,6 +8,7 @@ export function planSymbol(type,x,y,color='#33566d'){
  'Portátil':'<path d="M-11 6V-9h22V6M-16 6h32l-3 5h-26z"/>',
  'Tomada de rede':'<rect x="-12" y="-13" width="24" height="26" rx="3"/><path d="M-7-5H7v9H3v3h-6V4h-4zM-4-5v3m4-3v3m4-3v3"/>',
  'Patch panel':'<rect x="-17" y="-8" width="34" height="16" rx="1"/><path d="M-12-3h5v6h-5zM-3-3h5v6h-5zM6-3h5v6H6zM-12 11h3m6 0h3m6 0h3"/>',
+ 'Mini-switch':'<rect x="-16" y="-8" width="32" height="16" rx="3"/><path d="M-12-3h5v5h-5zM-4-3h5v5h-5zM4-3h5v5H4z"/>',
  'Switch':'<rect x="-16" y="-8" width="32" height="16" rx="2"/><path d="M-12-3h5v5h-5zM-4-3h5v5h-5zM4-3h5v5H4zM12-3v5"/>',
  'Firewall':'<path d="M0-15l12 5v11q-3 9-12 14Q-9 10-12 1v-11zM-8-1H8M-6 5H6M0-7v6m-4 0v6m8-6v6"/>',
  'Servidor':'<rect x="-11" y="-14" width="22" height="28" rx="2"/><path d="M-7-7H7M-7 0H7M-7 7H7"/>',
