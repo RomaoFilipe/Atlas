@@ -74,6 +74,10 @@ Typical questions Atlas helps answer:
 - The all-floor PDF includes an overview and one page per floor, independent of the current filters.
 - PNG, JPEG and WebP floor-plan backgrounds can be imported, positioned and calibrated using two points and a known distance.
 
+#### Guided connections and configuration
+
+Direct connections use three steps: **Equipment → Ports → Review**. Search for each endpoint by name, IP or location, choose an available port from a labelled card, and confirm both ends before saving. Occupied ports are disabled; an existing cable retains access to its own ports while editing. Power connections require an output and an input. Virtual links skip physical port selection. **Ligar um posto ao bastidor** handles the separate three-cable outlet/patch-panel workflow. Map actions use visible Explore, Move and Connect buttons with a Finish action. Common equipment types have creation shortcuts, and configuration fields include contextual help.
+
 #### Follow a cable, channel by channel
 
 Network outlets and patch panels preserve independent front/rear channel pairs: **F1 ↔ R1**, **F2 ↔ R2**, and so on. A two-channel outlet can therefore document two separate connections.
@@ -248,6 +252,10 @@ Exemplos de perguntas a que o Atlas ajuda a responder:
 - Percursos destacados entre pisos usam um diagrama separado por localização.
 - O PDF de todos os pisos inclui uma visão geral e uma página por piso, independentemente dos filtros ativos.
 - É possível importar plantas PNG, JPEG e WebP, posicioná-las e calibrar a escala com dois pontos e uma distância conhecida.
+
+#### Ligações e configuração guiadas
+
+As ligações diretas têm três passos: **Equipamentos → Portas → Confirmar**. Pesquise cada extremidade por nome, IP ou localização, escolha uma porta disponível num cartão identificado e confirme os dois lados antes de guardar. As portas ocupadas ficam bloqueadas; ao editar um cabo, as suas próprias portas continuam disponíveis. As ligações de energia exigem uma saída e uma entrada. As ligações virtuais dispensam portas físicas. **Ligar um posto ao bastidor** trata do percurso separado com três cabos, tomada e patch panel. No mapa, os botões Explorar, Mover e Ligar no mapa indicam a ação ativa, com a opção Terminar. Os equipamentos mais comuns têm atalhos de criação e os campos de configuração incluem ajuda contextual.
 
 #### Seguir um cabo, canal a canal
 
