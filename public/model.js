@@ -33,7 +33,7 @@ export function moveRack(p,id,x,z){
 
 // Optional fields preserve compatibility with projects saved in earlier versions.
 export function normalizeProject(p){
- p.floors??=[];p.rooms??=[];p.templates??=[];
+ p.floors??=[];p.rooms??=[];p.templates??=[];if(Array.isArray(p.connectionProposals))p.connectionProposals=p.connectionProposals.filter(l=>p.devices.some(d=>d.id===l.a)&&p.devices.some(d=>d.id===l.b));
  for(const s of p.sites){if(!p.floors.some(f=>f.site===s.id))p.floors.push({id:'floor-'+s.id,name:'Piso 0',site:s.id,level:0,elevation:0});}
  for(const r of p.racks){r.floor??=p.floors.find(f=>f.site===r.site)?.id||'';r.room??='';}
  for(const d of [...p.devices.filter(d=>d.type!=='VM'),...p.devices.filter(d=>d.type==='VM')]){if(d.rack){const r=p.racks.find(r=>r.id===d.rack);if(r){d.floor=r.floor;d.room=r.room||'';}}else if(d.type==='VM'&&d.host){const host=p.devices.find(h=>h.id===d.host);d.floor=host?.floor||p.floors.find(f=>f.site===d.site)?.id||'';d.room=host?.room||'';}else{d.floor??=p.floors.find(f=>f.site===d.site)?.id||'';d.room??='';}}
@@ -43,6 +43,7 @@ export function normalizeProject(p){
 }
 export function validateExtras(p){
  const fail=s=>{throw new Error(s);},str=(v,n,max=200)=>{if(typeof v!=='string'||v.length>max)fail(n+' inválido.');},num=(v,a,b,n)=>{if(!Number.isFinite(v)||v<a||v>b)fail(n+' fora dos limites.');};
+ if(p.connectionProposals!==undefined){if(!Array.isArray(p.connectionProposals)||p.connectionProposals.length>500)fail('Lista de propostas inválida.');const ids=new Set();for(const l of p.connectionProposals){if(!l||!/^[-a-zA-Z0-9_]{1,80}$/.test(l.id)||ids.has(l.id)||l.a===l.b||!p.devices.some(d=>d.id===l.a)||!p.devices.some(d=>d.id===l.b)||!['copper','fiber','power','virtual'].includes(l.kind))fail('Proposta de ligação inválida.');ids.add(l.id);str(l.portA,'Porta proposta',100);str(l.portB,'Porta proposta',100);}}
  for(const name of ['floors','rooms','templates']){if(p[name]!==undefined&&(!Array.isArray(p[name])||p[name].length>(name==='templates'?50:500)))fail('Lista inválida: '+name);const ids=new Set();for(const x of p[name]||[]){if(!/^[a-zA-Z0-9_-]{1,80}$/.test(x.id||'')||ids.has(x.id))fail('Identificador duplicado ou inválido.');ids.add(x.id);str(x.name,name);}}
  for(const f of p.floors||[]){if(!p.sites.some(s=>s.id===f.site))fail('Edifício do piso inexistente.');num(f.level,-10,150,'Nível do piso');num(f.elevation,-50,500,'Cota do piso');if(f.plan){str(f.plan.asset,'Imagem');if(!/^[a-zA-Z0-9_-]{1,80}$/.test(f.plan.asset))fail('Imagem inválida.');num(f.plan.widthMeters,.1,1000,'Largura da planta');num(f.plan.heightMeters,.1,1000,'Altura da planta');num(f.plan.x,-500,500,'Origem X');num(f.plan.z,-500,500,'Origem Z');num(f.plan.opacity,0,1,'Opacidade');}}
  for(const r of p.rooms||[]){const f=p.floors?.find(f=>f.id===r.floor);if(!f)fail('Piso da sala inexistente.');for(const k of ['x','z'])num(r[k],-500,500,'Posição da sala');for(const k of ['w','d'])num(r[k],.1,1000,'Dimensão da sala');}
