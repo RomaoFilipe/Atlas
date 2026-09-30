@@ -12,7 +12,7 @@ export function availableCablePorts(p,d,kind){if(!d)return [];if(kind==='virtual
 export function validateCableChoice(p,v,id=''){
  const a=p.devices.find(d=>d.id===v.a),b=p.devices.find(d=>d.id===v.b);if(!a||!b)throw new Error('Escolha os dois equipamentos.');if(a.id===b.id)throw new Error('Escolha um equipamento diferente no destino.');
  if(!['copper','fiber','virtual','power'].includes(v.kind))throw new Error('Escolha o tipo de ligação.');
- if(v.kind!=='virtual')for(const [d,port] of [[a,v.portA],[b,v.portB]]){if(!port||!availableCablePorts(p,d,v.kind).includes(port))throw new Error('Escolha uma porta disponível em '+d.name+'.');if(portInUse(p,d.id,port,id))throw new Error(d.name+' / '+port+' já está ocupada. Escolha outra porta.');}
+ if(v.kind!=='virtual')for(const [d,port,field] of [[a,v.portA,'portA'],[b,v.portB,'portB']]){if(!port||!availableCablePorts(p,d,v.kind).includes(port))throw Object.assign(new Error('Escolha uma porta disponível em '+d.name+'.'),{field});if(portInUse(p,d.id,port,id)){const link=p.links.find(l=>l.id!==id&&((l.a===d.id&&l.portA===port)||(l.b===d.id&&l.portB===port))),peer=p.devices.find(x=>x.id===(link?.a===d.id?link?.b:link?.a));throw Object.assign(new Error(d.name+' / '+port+' já está ocupada: ligada a '+(peer?.name||'outro equipamento')+'. Escolha outra porta.'),{field});}}
  if(v.kind==='power'&&!((/^OUT/i.test(v.portA)&&/^(PSU|IN)/i.test(v.portB))||(/^OUT/i.test(v.portB)&&/^(PSU|IN)/i.test(v.portA))))throw new Error('A alimentação precisa de uma saída OUT e de uma entrada PSU ou IN.');return {a,b};
 }
 export function initConnectionGuide(app,{form,onComplete=()=>{}}){return function cableForm(id=null,defaults={}){
