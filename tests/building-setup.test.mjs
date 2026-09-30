@@ -1,0 +1,16 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {buildingPlan,createBuilding} from '../public/building-setup.js';
+import {createRoomDevices,duplicateRoom,updateDevices} from '../public/room-actions.js';
+import {connectCabling} from '../public/cabling.js';
+import {validateCableChoice} from '../public/connection-guide.js';
+import {clone,normalizeProject,validate} from '../public/model.js';
+const blank=()=>({version:3,name:'Teste',sites:[],floors:[],rooms:[],devices:[],racks:[],links:[],nets:[],templates:[]});
+const structure={name:'Principal',floors:[{name:'Piso 0',rooms:'Receção\nContabilidade'},{name:'Piso 1',rooms:'Sala técnica'}]};
+test('building creation is complete, separated by floor, and avoids existing buildings',()=>{const p=blank(),before=clone(p),preview=buildingPlan(p,structure);assert.deepEqual(p,before);assert.equal(preview.rooms.length,3);const first=createBuilding(p,structure),second=createBuilding(p,{name:'Anexo',floors:[{name:'Piso 0',rooms:''}]});normalizeProject(p);validate(p);assert.equal(p.floors.length,3);assert.equal(p.rooms.length,3);assert.ok(Math.abs(first.site.x-second.site.x)>=(first.site.w+second.site.w)/2);assert.equal(second.rooms.length,0);});
+test('invalid structures fail before changing any project data',()=>{for(const floors of [[],[{name:'',rooms:'A'}],[{name:'Piso',rooms:'A\na'}],[{name:'Piso',rooms:''},{name:'piso',rooms:''}],[{name:'Piso',rooms:Array.from({length:21},(_,i)=>'Sala '+i).join('\n')}]]){const p=blank();assert.throws(()=>createBuilding(p,{name:'Edifício',floors}));assert.deepEqual(p,blank());}});
+test('journey: building, devices, cable route, occupied-port correction, room copy and restored snapshot',()=>{let p=blank();const made=createBuilding(p,structure),roomId=made.rooms[1].id;const add=(name,type,quantity=1)=>createRoomDevices(p,{roomId,name,type,quantity});const pcs=add('PC','Computador',6),sockets=add('Tomada','Tomada de rede',3),mini=add('Mini','Mini-switch')[0],sw=add('Switch','Switch')[0],panel=add('Painel','Patch panel')[0];normalizeProject(p);validate(p);
+ connectCabling(p,{pc:pcs[0],switch:sw,socket:sockets[0],panel,pcPort:'Ethernet1',switchPort:'Gi1/0/1',socketChannel:'1',panelChannel:'1'});assert.equal(p.links.length,3);
+ assert.throws(()=>validateCableChoice(p,{a:pcs[1],portA:'Ethernet1',b:sockets[0],portB:'F1',kind:'copper'}),/ocupada/);validateCableChoice(p,{a:pcs[1],portA:'Ethernet1',b:sockets[0],portB:'F2',kind:'copper'});assert.ok(p.devices.find(d=>d.id===mini));
+ updateDevices(p,pcs,{owner:'Ana'});const beforeCopy=clone(p),copied=duplicateRoom(p,roomId,'Contabilidade 2');normalizeProject(p);validate(p);assert.equal(p.links.length,3);assert.equal(p.connectionProposals.length,3);assert.ok(p.devices.filter(d=>d.room===copied).every(d=>!d.ip&&!d.record));
+ const restored=normalizeProject(validate(JSON.parse(JSON.stringify(p))));assert.equal(restored.connectionProposals.length,3);p=beforeCopy;validate(p);assert.equal(p.rooms.length,3);assert.ok(pcs.every(id=>p.devices.find(d=>d.id===id).record.owner==='Ana'));
+});
