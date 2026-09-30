@@ -417,3 +417,9 @@ Capacity distinguishes free outlet fronts, free mini-switch downstream ports and
 **Português:** Numa sala vazia, escolha **Equipar sala**; numa sala existente, use **Mais ações → Equipar sala em conjunto**. Comece por Escritório, Sala de reuniões ou Atendimento e ajuste os postos, um/dois monitores por posto, telefones IP, impressoras, tomadas duplas e mini-switches. A pré-visualização apresenta os equipamentos antes de uma única operação que pode desfazer. Os equipamentos existentes mantêm a posição. Os monitores pertencem ao posto e não consomem saídas Ethernet.
 
 O resumo distingue saídas de tomada livres, portas livres de mini-switch (excluindo a entrada) e portas com percurso até à rede registado. As propostas pendentes reservam portas. **Propor ligações** sugere destinos na sala e, quando existem, portas de patch panel e switch no mesmo edifício. Cada cabo exige revisão e confirmação; nenhuma proposta confirma a instalação física. A infraestrutura em falta fica por identificar. **Ver percurso** segue o canal da tomada/painel e a entrada do mini-switch, permite abrir os equipamentos e destacar o percurso no mapa. Ao mudar equipamentos de sala, é obrigatório decidir quais os cabos a manter ou desligar; as propostas antigas dos equipamentos são retiradas.
+
+### Campus-first layout / Campus como vista inicial
+
+**English:** Atlas opens in Campus 3D. The selection panel starts collapsed and opens when an object is selected. Map view tabs, editing actions and location filters are grouped separately. A sidebar action creates a building directly; responsive project counters and search keep the map central.
+
+**Português:** O Atlas abre no Campus 3D. O painel de detalhes começa recolhido e abre ao selecionar um objeto. Os separadores de vista, as ações de edição e os filtros de localização têm grupos próprios. A navegação lateral permite criar um edifício diretamente; os indicadores e a pesquisa adaptam-se à largura do ecrã.
