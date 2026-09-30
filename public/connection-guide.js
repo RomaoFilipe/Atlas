@@ -1,8 +1,9 @@
+import {outletName} from './simple-network.js';
 import {escapeHTML as e,uid} from './model.js';
 import {portsFor,portInUse,passive} from './network.js';
 export function portLabel(d,port){
  const channel=port.match(/^([FR])(\d+)$/i);
- if(channel&&d.type==='Tomada de rede')return 'Saída '+String.fromCharCode(64+Number(channel[2]))+' · '+(channel[1].toUpperCase()==='F'?'para equipamento':'até ao bastidor')+' ('+port+')';
+ if(channel&&d.type==='Tomada de rede')return outletName(port)+' · '+(channel[1].toUpperCase()==='F'?'para equipamento':'até ao bastidor')+' ('+port+')';
  if(channel&&passive(d))return (d.type==='Tomada de rede'?'Saída ':'Canal ')+channel[2]+' · '+(channel[1].toUpperCase()==='F'?'frente':'traseira')+' ('+port+')';
  if(d.type==='Mini-switch'&&port===(d.uplinkPort||'P1'))return port+' · rede principal';
  return /^OUT/.test(port)?port+' · saída de energia':/^(PSU|IN)/.test(port)?port+' · entrada de energia':port;
