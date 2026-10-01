@@ -1,3 +1,4 @@
+import {initWorkspaceShell} from './workspace-shell.js';
 import {initWorkspaceNavigation} from './workspace-navigation.js';
 // Move existing controls so their handlers and data remain intact.
 export function initLayout(app){
@@ -38,6 +39,7 @@ export function initLayout(app){
  const locationMenu=document.createElement('details');locationMenu.className='dropdown map-location-menu';locationMenu.innerHTML='<summary>Filtrar localização</summary><div class="dropdown-body"></div>';scope.before(locationMenu);locationMenu.lastElementChild.append(scope);command.insertBefore(locationMenu,$('.history-buttons'));
  const newBuilding=document.createElement('button');newBuilding.id='sidebarCreateBuilding';newBuilding.className='primary';newBuilding.textContent='＋ Criar edifício';$('#primaryNavigation').after(newBuilding);newBuilding.onclick=()=>app.edit('sites');
  const caption=document.createElement('p');caption.className='workspace-subtitle';caption.id='workspaceSubtitle';$('#viewTitle').after(caption);
+ const shell=initWorkspaceShell(app);
  return {showMap:()=>navigation.showMap(),onSelection(){if(narrow()){body.classList.remove('open-navigation');body.classList.add('open-selection');}else body.classList.remove('hide-selection');sync();},afterRender(){
   // Rack actions appear only when inspecting that view; the inspector holds campus rack actions.
   if($('#mapView').value!=='rack')$('#rackControls').hidden=true;
@@ -47,6 +49,6 @@ export function initLayout(app){
    const section=document.createElement('details');section.className='inspector-group';const summary=document.createElement('summary');summary.textContent=heading.textContent;section.append(summary);heading.before(section);let sibling=heading.nextElementSibling;heading.remove();
    while(sibling&&(sibling.matches('.connection,.port-face-controls,.port-grid,[data-follow-circuit],#configurePorts')||(heading.textContent.startsWith('Portas ·')&&sibling.matches('p.notice')))){const next=sibling.nextElementSibling;section.append(sibling);sibling=next;}
   }
-  navigation.afterRender();const mode=app.get().mode;body.dataset.view=mode;$('#workspaceSubtitle').textContent=body.dataset.workspace==='inventory'?'Encontre equipamentos e abra a respetiva localização.':mode==='physical'?'Explore os edifícios e selecione um objeto para consultar os detalhes.':mode==='plan'?'Organize salas, equipamentos e percursos de rede.':mode==='rack'?'Consulte a instalação e as portas do bastidor.':'Consulte a organização das redes e as suas ligações';
+  navigation.afterRender();shell.refresh();const mode=app.get().mode;body.dataset.view=mode;$('#workspaceSubtitle').textContent=body.dataset.workspace==='inventory'?'Encontre equipamentos e abra a respetiva localização.':mode==='physical'?'Explore os edifícios e selecione um objeto para consultar os detalhes.':mode==='plan'?'Organize salas, equipamentos e percursos de rede.':mode==='rack'?'Consulte a instalação e as portas do bastidor.':'Consulte a organização das redes e as suas ligações';
  }};
 }
