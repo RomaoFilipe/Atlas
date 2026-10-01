@@ -3,7 +3,7 @@ export const clone=x=>JSON.parse(JSON.stringify(x));
 export const uid=p=>p+'-'+crypto.randomUUID().slice(0,12);
 export const escapeHTML=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function ipv4(s){return /^(\d{1,3}\.){3}\d{1,3}$/.test(s)&&s.split('.').every(n=>+n<=255&&String(+n)===n);}
-export function validate(p){
+export function validate(p){if(p?.layoutLocked!==undefined&&typeof p.layoutLocked!=='boolean')throw new Error('Bloqueio do mapa inválido.');for(const type of ['sites','floors','rooms','racks','devices'])for(const item of (Array.isArray(p?.[type])?p[type]:[]))if(item.layoutLocked!==undefined&&typeof item.layoutLocked!=='boolean')throw new Error('Bloqueio de posição inválido.');
  const fail=m=>{throw new Error(m);};const text=(v,name,max=160)=>{if(typeof v!=='string'||v.length>max)fail(name+': texto inválido ou demasiado longo.');};const number=(v,min,max,name)=>{if(typeof v!=='number'||!Number.isFinite(v)||v<min||v>max)fail(name+': valor fora dos limites.');};
  if(!p||p.version!==3)fail('Formato de projeto não suportado.');text(p.name,'Nome',100);if(!p.name.trim())fail('Indique o nome do projeto.');
  for(const name of ['sites','racks','devices','links','nets']){if(!Array.isArray(p[name])||p[name].length>500)fail('Lista inválida: '+name);const ids=new Set();for(const x of p[name]){if(!x||typeof x!=='object')fail('Registo inválido.');if(name==='nets'){if(!Number.isInteger(x.id)||x.id<1||x.id>4094)fail('VLAN: use um número entre 1 e 4094.');}else if(typeof x.id!=='string'||!/^[a-zA-Z0-9_-]{1,80}$/.test(x.id))fail('Identificador inválido.');if(ids.has(x.id))fail('Identificador repetido: '+x.id);ids.add(x.id);}}

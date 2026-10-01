@@ -19,7 +19,7 @@ export function initLayout(app){
  // One view switcher and one contextual command row above the map.
  const command=$('.map-commandbar'),views=$('.segmented');views.classList.add('map-views');command.before(views);$('#mapView').parentElement.classList.add('duplicate-view');
  const add=document.createElement('details');add.className='dropdown add-menu';add.id='addMenu';add.innerHTML='<summary>＋ Adicionar <span>⌄</span></summary><div class="dropdown-body"></div>';add.lastElementChild.append($('.creation-buttons'));add.lastElementChild.append($('#addWorkstation'));command.prepend(add);command.append($('.history-buttons'));$('#undo').textContent='↶';$('#undo').setAttribute('aria-label','Anular última alteração');$('#redo').textContent='↷';$('#redo').setAttribute('aria-label','Refazer alteração');$('.editor-toolbar').remove();
- $('.main-head').insertBefore($('.stats'),$('.save-indicator'));$('#mapToolHint').classList.add('tool-hint');command.after($('#mapToolHint'));
+ $('.main-head').insertBefore($('.stats'),$('.save-indicator'));$('#mapToolHint').classList.add('tool-hint');command.after($('#mapToolHint'));if($('#mapTools'))$('#mapToolHint').after($('#mapTools'));
  // Scope is secondary, and should not look like another row of primary actions.
  const scope=$('.scope-controls');scope.classList.add('map-scope');$('#mapWorkspace').insertBefore(scope,$('#rackControls'));
  const inventory=$('#inventory');inventory.querySelector('.table-wrap').id='inventoryTable';inventory.querySelector('.section-head').insertAdjacentHTML('beforeend','<button id="toggleInventory" aria-expanded="false" aria-controls="inventoryTable">Mostrar lista</button>');$('#inventoryTable').hidden=true;
