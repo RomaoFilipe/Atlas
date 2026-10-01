@@ -1,0 +1,6 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {resizeRoom,roomResizeBounds} from '../public/equipment.js';
+const project=()=>({sites:[{id:'s',x:20,z:30,w:20,d:20}],floors:[{id:'f',site:'s'}],rooms:[{id:'r',floor:'f',x:0,z:0,w:4,d:4}],devices:[],racks:[]});
+test('resizing fixes top-left, preserves equipment and clamps at building edges',()=>{const p=project();p.devices.push({id:'pc',room:'r',x:21,z:31});const devices=JSON.stringify(p.devices);const preview=roomResizeBounds(p,'r',50,50);assert.equal(p.rooms[0].w,4);resizeRoom(p,'r',50,50);assert.deepEqual({...p.rooms[0],id:undefined,floor:undefined},{...preview,id:undefined,floor:undefined});const r=p.rooms[0];assert.equal(r.x-r.w/2,-2);assert.equal(r.z-r.d/2,-2);assert.equal(r.x+r.w/2,10);assert.equal(JSON.stringify(p.devices),devices);resizeRoom(p,'r',-10,-10);assert.ok(r.x+r.w/2>=1.4);assert.ok(r.z+r.d/2>=1.4);});
+test('minimum room size and inherited locks are respected atomically',()=>{const p=project();resizeRoom(p,'r',-100,-100);assert.equal(p.rooms[0].w,1);assert.equal(p.rooms[0].d,1);p.floors[0].layoutLocked=true;const before=JSON.stringify(p);assert.throws(()=>resizeRoom(p,'r',5,5),/protegida/);assert.equal(JSON.stringify(p),before);assert.throws(()=>roomResizeBounds(p,'r',NaN,5),/inválidas/);});

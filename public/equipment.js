@@ -34,3 +34,23 @@ export function moveRoom(p,id,x,z){
  if(minX>maxX||minZ>maxZ)throw new Error('A sala é maior do que o edifício. Ajuste as dimensões antes de a mover.');const dx=Math.max(minX,Math.min(maxX,Math.round(x*10)/10-room.x)),dz=Math.max(minZ,Math.min(maxZ,Math.round(z*10)/10-room.z));
  for(const [,d] of members){d.x+=dx;d.z+=dz;}return room;
 }
+
+// Bottom-right resizing keeps the top-left corner and equipment positions fixed.
+export function roomResizeBounds(p,id,right,bottom){
+ const room=p.rooms.find(r=>r.id===id),floor=p.floors.find(f=>f.id===room?.floor),site=p.sites.find(s=>s.id===floor?.site);
+ if(!room||!site)throw new Error('Sala inexistente.');
+ if(!Number.isFinite(right)||!Number.isFinite(bottom))throw new Error('Dimensões inválidas.');
+ const lock=positionLock(p,'rooms',id);if(lock)throw new Error('Posição protegida por «'+lock.name+'». Abra Gerir bloqueios.');
+ const left=room.x-room.w/2,top=room.z-room.d/2;
+ let minRight=left+1,minBottom=top+1;
+ for(const [type,items] of [['racks',p.racks],['devices',p.devices]])for(const item of items||[]){
+  if(item.room!==id||item.rack||item.type==='VM')continue;
+  const x=item.x-(type==='devices'?site.x:0),z=item.z-(type==='devices'?site.z:0);
+  if(x>=left&&x<=left+room.w&&z>=top&&z<=top+room.d){minRight=Math.max(minRight,x+.4);minBottom=Math.max(minBottom,z+.4);}
+ }
+ const maxRight=site.w/2,maxBottom=site.d/2;
+ if(minRight>maxRight||minBottom>maxBottom)throw new Error('Não há espaço para redimensionar neste local. Mova a sala ou os equipamentos.');
+ const endX=Math.max(minRight,Math.min(maxRight,Math.round(right*10)/10)),endZ=Math.max(minBottom,Math.min(maxBottom,Math.round(bottom*10)/10));
+ return {x:(left+endX)/2,z:(top+endZ)/2,w:endX-left,d:endZ-top};
+}
+export function resizeRoom(p,id,right,bottom){const bounds=roomResizeBounds(p,id,right,bottom);return Object.assign(p.rooms.find(r=>r.id===id),bounds);}
