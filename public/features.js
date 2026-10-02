@@ -39,7 +39,7 @@ export function initFeatures(app){
  const roomsUI=initRoomWorkspace(app,{form,input,select,scope:()=>({floorId:floor,roomId:room}),openRoom,openFloor,connect:simpleNetwork.open,cableForm,roomForm,showRoute(result){floor='';room='';selectedLink='';routeEditing=false;app.showRoute(result);}});
  const mapTools=initMapTools(app,{form,openFloor,openRoom,scope:()=>({floorId:floor,roomId:room})});
  function openFloor(id){app.clearMapRoute();floor=id;room='';selectedLink='';routeEditing=false;app.setMode('plan');loadFloorImage().catch(err=>message(err.message,true));}
- function openRoom(id){const r=app.get().project.rooms.find(r=>r.id===id);if(!r)return;app.clearMapRoute();floor=r.floor;room=id;selectedLink='';routeEditing=false;app.setMode('plan');}
+ function openRoom(id){if(app.get().mode==='physical'){app.select('rooms',id);return;}const r=app.get().project.rooms.find(r=>r.id===id);if(!r)return;app.clearMapRoute();floor=r.floor;room=id;selectedLink='';routeEditing=false;app.setMode('plan');}
  const openCabling=initCablingAssistant(app,result=>{floor='';room='';selectedLink='';routeEditing=false;$('#studio').close();app.showCabling(result);});
  function message(text,error=false){$('#studioStatus').textContent=text;$('#studioStatus').classList.toggle('error',error);}
  function act(fn){try{return fn();}catch(err){message(err.message,true);app.status(err.message,true);}}
