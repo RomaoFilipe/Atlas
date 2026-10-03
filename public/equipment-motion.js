@@ -1,0 +1,5 @@
+import {worldPosition} from './model.js';
+import {positionLock} from './map-locks.js';
+import {rotationBlock} from './equipment-rotation.js';
+export function nudgeEquipment(p,id,axis,delta){const blocked=rotationBlock(p,id);if(blocked)throw Error(blocked);if(!['x','y','z'].includes(axis)||!Number.isFinite(delta))throw Error('Deslocamento inválido.');const d=p.devices.find(d=>d.id===id),value=Math.round(((d[axis]||0)+delta)*100)/100,s=p.sites.find(s=>s.id===d.site);if(axis==='y'&&(value<0||value>20))throw Error('A altura deve ficar entre 0 e 20 metros.');if(axis==='x'&&Math.abs(value-s.x)>s.w/2||axis==='z'&&Math.abs(value-s.z)>s.d/2)throw Error('O equipamento deve ficar dentro do edifício.');d[axis]=value;}
+export function detachEquipment(p,id){const d=p.devices.find(d=>d.id===id);if(!d?.rack||d.type==='VM')throw Error('Selecione um equipamento instalado num bastidor.');const lock=positionLock(p,'devices',id);if(lock)throw Error('Posição protegida por '+lock.name+'.');const pos=worldPosition(p,d),elevation=p.floors.find(f=>f.id===d.floor)?.elevation||0;Object.assign(d,{rack:'',x:pos.x,z:pos.z,y:Math.max(0,pos.y-elevation)});}
