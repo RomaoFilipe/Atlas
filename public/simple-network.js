@@ -20,7 +20,7 @@ export function connectionChoices(p,source,sourcePort){
 }
 export function initSimpleNetwork(app,cableForm){
  const dialog=document.createElement('dialog');dialog.className='simple-network-dialog';dialog.setAttribute('aria-labelledby','simpleNetworkTitle');document.body.append(dialog);
- function open(id,preferred=''){
+ function open(id,preferred=''){if(app.beginMapConnection?.(id,preferred))return;
  const p=app.get().project,d=p.devices.find(x=>x.id===id);if(!d)return;const kind=connectionKind(d,preferred),used=preferred&&portInUse(p,id,preferred);if(used){cableForm(used.id);return;}if(kind!=='copper'||d.type==='Patch panel'){cableForm(null,{a:id,portA:preferred,kind});return;}
  const existing=p.links.filter(l=>l.a===id||l.b===id);
  const sourcePorts=preferred?[preferred]:portsFor(p,d).filter(port=>!portInUse(p,d.id,port));
