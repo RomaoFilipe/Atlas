@@ -1,6 +1,6 @@
 import {positionLock} from './map-locks.js';
 import {alignEquipment,equipmentOverlaps,floorFootprint} from './move-alignment.js';
-import {createRoomDevices} from './room-actions.js';
+import {createRoomDevices,duplicateDevice} from './room-actions.js';
 export function roomAt(p,floorId,x,z,roomId='') {const f=p.floors.find(f=>f.id===floorId),s=p.sites.find(s=>s.id===f?.site);return s?p.rooms.filter(r=>r.floor===floorId&&(!roomId||r.id===roomId)&&Math.abs(x-s.x-r.x)<=r.w/2&&Math.abs(z-s.z-r.z)<=r.d/2).sort((a,b)=>a.w*a.d-b.w*b.d)[0]:null;}
 export function placement(p,d,x,z,{snap=true}={}){
  let next={...d,x,z},guides=[];
@@ -13,3 +13,16 @@ export function placement(p,d,x,z,{snap=true}={}){
 export function applyPlacement(p,id,target){const d=p.devices.find(d=>d.id===id);if(!d||d.rack||d.host||d.type==='VM')throw Error('Este equipamento não pode ser movido na planta.');const lock=positionLock(p,'devices',id);if(lock)throw Error('Posição protegida por '+lock.name+'.');const s=p.sites.find(s=>s.id===d.site);if(!Number.isFinite(target.x)||!Number.isFinite(target.z)||Math.abs(target.x-s.x)>s.w/2||Math.abs(target.z-s.z)>s.d/2)throw Error('Coloque o equipamento dentro do edifício.');Object.assign(d,{x:target.x,z:target.z,rotation:target.rotation||0});}
 export function placeNew(p,{type,floorId,roomId,x,z}){const r=roomAt(p,floorId,x,z,roomId);if(!r)throw Error('Escolha um ponto dentro de uma sala.');const lock=positionLock(p,'rooms',r.id);if(lock)throw Error('Sala protegida por '+lock.name+'.');const id=createRoomDevices(p,{roomId:r.id,name:type,type})[0],d=p.devices.find(d=>d.id===id);applyPlacement(p,id,placement(p,d,x,z));return id;}
 export const pointerAngle=(cx,cy,x,y)=>((Math.round((Math.atan2(x-cx,cy-y)*-180/Math.PI)/15)*15)%360+360)%360;
+
+// Find a free place before creating the copy, so a full room never leaves a partial edit.
+export function duplicateInRoom(p,id){
+ const d=p.devices.find(d=>d.id===id);if(!d||d.rack||d.host||d.type==='VM')throw Error('Selecione um equipamento físico fora do bastidor.');
+ const lock=positionLock(p,'devices',id);if(lock)throw Error('Posição protegida por '+lock.name+'.');
+ const r=p.rooms.find(r=>r.id===d.room),s=p.sites.find(s=>s.id===d.site);if(!r||!s)throw Error('Atribua uma sala antes de duplicar na planta.');
+ const candidates=[];for(let x=s.x+r.x-r.w/2+.3;x<s.x+r.x+r.w/2;x+=.3)for(let z=s.z+r.z-r.d/2+.3;z<s.z+r.z+r.d/2;z+=.3)candidates.push({x,z});
+ candidates.sort((a,b)=>Math.hypot(a.x-d.x,a.z-d.z)-Math.hypot(b.x-d.x,b.z-d.z));
+ const probe={...d,id:'__placement_preview__'},shadow={...p,devices:[...p.devices,probe]};
+ let target;for(const c of candidates){const t=placement(shadow,probe,c.x,c.z,{snap:false});if(!t.outside&&!t.overlaps.length){target=t;break;}}
+ if(!target)throw Error('Não existe espaço livre suficiente nesta sala. Ajuste a disposição antes de duplicar.');
+ const copyId=duplicateDevice(p,id),copy=p.devices.find(d=>d.id===copyId);Object.assign(copy,{x:target.x,z:target.z,rotation:target.rotation,layoutLocked:false});return copyId;
+}
