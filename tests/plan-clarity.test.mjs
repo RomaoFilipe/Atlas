@@ -9,17 +9,14 @@ test('all-floor positions view is a building navigator rather than overlapping d
  assert(!svg.includes('data-plan-type="devices"'));assert(!svg.includes('data-plan-type="links"'));
  assert.equal(JSON.stringify(p),before);
 });
-test('municipal spatial labels stay inside their own rooms on each floor and never overlap',()=>{
- const p=makeExample('municipal');
- for(const f of p.floors){const svg=makePlan({project:p,floorId:f.id}),g=planGeometry(p,{floorId:f.id}),site=p.sites.find(s=>s.id===f.site),rects=[];
- for(const d of [...p.racks.filter(d=>d.floor===f.id),...p.devices.filter(d=>d.floor===f.id&&!d.rack&&d.type!=='VM')]){
- const room=p.rooms.find(r=>r.id===d.room);if(!room)continue;
- const entry=svg.match(new RegExp('data-plan-id="'+d.id+'"[^>]*><rect x="([^"]+)" y="([^"]+)" width="([^"]+)" height="([^"]+)"'));
- assert(entry,d.id);const [x,y,w,h]=entry.slice(1).map(Number),box={x:g.x(site.x+room.x-room.w/2),y:g.y(site.z+room.z-room.d/2),w:room.w*g.scale,h:room.d*g.scale};
- assert(x>=box.x&&x+w<=box.x+box.w,d.id+' outside room horizontally');assert(y>=box.y+30&&y+h<=box.y+box.h,d.id+' outside room vertically');rects.push({x,y,w,h,id:d.id});
+test('spatial equipment keeps world anchors, saved rotation and model data on every floor',()=>{
+ const p=makeExample('municipal');p.devices.find(d=>!d.rack).rotation=45;const before=JSON.stringify(p);
+ for(const f of p.floors){const svg=makePlan({project:p,floorId:f.id}),g=planGeometry(p,{floorId:f.id});
+ for(const d of p.devices.filter(d=>d.floor===f.id&&!d.rack&&d.type!=='VM')){
+ const entry=svg.slice(svg.indexOf('data-plan-id="'+d.id+'"'));assert(entry.startsWith('data-plan-id="'+d.id+'"'));
+ assert(entry.slice(0,entry.indexOf('</title>')+300).includes('translate('+g.x(d.x)+' '+g.y(d.z)+') rotate('+(-(d.rotation||0))+')'));
  }
- for(let i=0;i<rects.length;i++)for(let j=i+1;j<rects.length;j++){const a=rects[i],b=rects[j];assert(a.x+a.w<=b.x||b.x+b.w<=a.x||a.y+a.h<=b.y||b.y+b.h<=a.y,a.id+' overlaps '+b.id);}
- }
+ }assert.equal(JSON.stringify(p),before);
 });
 test('default floor has no cable mesh, selection reveals only attached cables and All is explicit',()=>{
  const p=makeExample('municipal');let svg=makePlan({project:p,floorId:'pacos-0'});assert(!svg.includes('data-plan-type="links"'));
