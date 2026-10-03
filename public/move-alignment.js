@@ -1,7 +1,7 @@
 // Approximate occupied floor area of free-standing equipment, in metres.
 const sizes={'Posto de trabalho':[1.85,2.1,0,.35],Computador:[1.2,.8,.15,.1],Portátil:[.75,.7,0,.1],Impressora:[.75,.9,0,.1],UPS:[.65,.65,0,0]};
 export function floorFootprint(d,x=d.x,z=d.z){
- const [w,depth,ox,oz]=sizes[d.type]||[.6,.6,0,0],angle=(d.rotation||0)*Math.PI/180,c=Math.cos(angle),s=Math.sin(angle),cx=x+ox*c+oz*s,cz=z-ox*s+oz*c,hw=(Math.abs(w*c)+Math.abs(depth*s))/2,hd=(Math.abs(w*s)+Math.abs(depth*c))/2;
+ const [w,depth,ox,oz]=(d.type==='Posto de trabalho'?[d.deskWidth||1.85,2.1*(d.deskDepth||.95)/.95,0,.35*(d.deskDepth||.95)/.95]:sizes[d.type]||[.6,.6,0,0]),angle=(d.rotation||0)*Math.PI/180,c=Math.cos(angle),s=Math.sin(angle),cx=x+ox*c+oz*s,cz=z-ox*s+oz*c,hw=(Math.abs(w*c)+Math.abs(depth*s))/2,hd=(Math.abs(w*s)+Math.abs(depth*c))/2;
  return {minX:cx-hw,maxX:cx+hw,minZ:cz-hd,maxZ:cz+hd};
 }
 export function canAlign(d){return !!d&&!d.rack&&!d.host&&!['VM','Tomada de rede','Wi-Fi','Câmara','Internet'].includes(d.type);}

@@ -29,6 +29,7 @@ export function createScene(container,labelLayer,onSelect,onMoveRack=()=>{},onBl
  function equipment(d){const p=position(d),g=new THREE.Group();g.rotation.y=(!d.rack&&mode==='physical'?(d.rotation||0):0)*Math.PI/180;g.position.set(p.x,p.y,p.z);group.add(g);const h=d.rack&&mode!=='logical'?d.units*.12:.28;const color=d.type==='Firewall'?0x415c60:d.type==='UPS'?0x212e40:0x344e64;
  if(['PDU','Switch','Firewall','Servidor','Armazenamento','Patch panel','UPS'].includes(d.type)){rackEquipment({box,g,d,h,detail:mode==='rack'});if(mode==='rack')textSprite(d.name+' · U'+d.u+(d.units>1?'–'+(d.u+d.units-1):''),face==='rear'?-1.65:1.65,p.y,p.z+(face==='rear'?-.62:.62),.12);
  }else if(d.type==='Posto de trabalho'){
+ g.scale.set((d.deskWidth||1.85)/1.85,1,(d.deskDepth||.95)/.95);
  box(1.85,.08,.95,0x997850,0,.76,0,g,true);for(const x of [-.8,.8])for(const z of [-.36,.36])box(.055,.72,.055,0x718795,x,.36,z,g);box(.75,.07,.7,0x253e53,0,.42,.85,g);box(.75,.65,.09,0x304f65,0,.79,1.16,g,true);box(.08,.4,.08,0x8c9aa3,0,.2,.85,g);for(const x of [-.35,.35])box(.7,.04,.06,0x526e81,0,.04,.85+x,g);
  const count=d.monitors||1;for(let i=0;i<count;i++){const x=count===1?0:(i-.5)*.8;box(.72,.44,.055,0x132838,x,1.14,-.18,g,true);box(.65,.36,.015,0x3b8da4,x,1.14,-.145,g);box(.035,.18,.04,0x758c9c,x,.88,-.18,g);box(.24,.025,.17,0x516c7e,x,.81,-.16,g);box(.52,.02,.008,0x7acdbb,x,1.03,-.132,g);}
  box(.55,.025,.2,0x283e4f,-.12,.82,.22,g,true);box(.09,.035,.14,0x668c9e,.35,.84,.2,g);box(.23,.52,.43,0x21384c,.65,.3,-.06,g,true);box(.015,.1,.015,0x72e8bb,.68,.48,.162,g);

@@ -11,7 +11,7 @@ export function equipmentDrawing(d){
  if(type==='Portátil')return rect(-.36,-.1,.72,.48,'#aabfc9',.04)+rect(-.34,-.103,.68,.055,'#294d65')+keyboard(-.275,.02)+rect(-.1,.27,.2,.08,'#d6e3e8');
  if(type==='Impressora')return rect(-.35,-.3,.7,.6,'#b4cbd5',.05)+rect(-.29,-.25,.58,.36,'#e3edf1')+rect(-.23,.24,.46,.07,'#35556c')+rect(-.215,.31,.43,.2,'white')+rect(.065,.08,.19,.1,'#468a99');
  if(type==='Wi-Fi')return '<circle r=".3" fill="#e6f3f5"/><path d="M-.17 -.04q.17-.16 .34 0m-.27 .07q.1-.09 .2 0" fill="none"/><circle cy=".1" r=".025" fill="#078773"/>';
- if(type==='Tomada de rede'){const n=Math.min(4,d.portCount||2);return rect(-.18,-.15,.36,.3,'#fff2d8')+Array.from({length:n},(_,i)=>rect(-.13+(i%2)*.15,-.1+Math.floor(i/2)*.13,.1,.085,'#657c88',.005)).join('');}
+ if(type==='Tomada de rede'){const n=Math.min(4,d.portCount||2);return rect(-.18,-.15,.36,.3,'#fff2d8')+Array.from({length:n},(_,i)=>rect(-.13+(i%2)*.15,-.1+Math.floor(i/2)*.13,.1,.085,'#657c88',.005)+`<text class="plan-port-detail" x="${-.08+(i%2)*.15}" y="${-.03+Math.floor(i/2)*.13}" font-size=".06" text-anchor="middle" fill="white" stroke="none">${i+1}</text>`).join('');}
  if(type==='Telefone IP')return rect(-.16,-.125,.32,.25,'#9cb5c2')+rect(-.15,-.12,.07,.24,'#35556c')+rect(0,-.085,.12,.07,'#70b7b1')+rect(0,.02,.11,.07,'#d9e7eb');
  if(type==='Câmara')return rect(-.125,-.215,.25,.43,'#c3d9e2')+rect(-.08,.2,.16,.06,'#294d65');
  if(type==='Bastidor')return rect(-.5,-.5,1,1,'#c9d9e2',.04)+rect(-.42,-.43,.84,.86,'#49677b')+Array.from({length:6},(_,i)=>`<path d="M-.32 ${-.32+i*.12}h.64" stroke="#a8c3cf"/>`).join('');
@@ -21,7 +21,7 @@ export function equipmentDrawing(d){
 }
 export function equipmentBounds(d,x,y,scale){const b=floorFootprint({...d,x:0,z:0});return{x:x+b.minX*scale,y:y+b.minZ*scale,w:(b.maxX-b.minX)*scale,h:(b.maxZ-b.minZ)*scale};}
 export function planEquipment(d,x,y,scale,{selected=false,warning=false,type='devices',active=true}={}){
- return `<g data-plan-type="${type}" data-plan-id="${e(d.id)}" tabindex="0" role="button" aria-label="${e(d.name+' · '+d.type)}" opacity="${active?1:.2}" class="plan-equipment"><title>${e(d.name+' · '+d.type+' · '+(d.ip||'Sem IP')+' · '+(d.rotation||0)+'°')}</title><g transform="translate(${x} ${y}) rotate(${-(d.rotation||0)}) scale(${scale})" stroke="${warning?'#c64e32':selected?'#008773':'#44657a'}" stroke-width=".022" stroke-linejoin="round">${selected||warning?'<circle r="1.15" fill="none" stroke-dasharray=".1 .07" stroke-width=".035"/>':''}<circle r=".32" fill="none" stroke="none" pointer-events="all"/>${equipmentDrawing(d)}</g></g>`;
+ return `<g data-plan-type="${type}" data-plan-id="${e(d.id)}" tabindex="0" role="button" aria-label="${e(d.name+' · '+d.type)}" opacity="${active?1:.2}" class="plan-equipment"><title>${e(d.name+' · '+d.type+' · '+(d.ip||'Sem IP')+' · '+(d.rotation||0)+'°')}</title><g transform="translate(${x} ${y}) rotate(${-(d.rotation||0)}) scale(${scale})" stroke="${warning?'#c64e32':selected?'#008773':'#44657a'}" stroke-width=".022" stroke-linejoin="round">${selected||warning?'<circle r="1.15" fill="none" stroke-dasharray=".1 .07" stroke-width=".035"/>':''}<circle r=".32" fill="none" stroke="none" pointer-events="all"/>${d.type==='Posto de trabalho'?'<g transform="scale('+((d.deskWidth||1.85)/1.85)+' '+((d.deskDepth||.95)/.95)+')">'+equipmentDrawing(d)+'</g>':equipmentDrawing(d)}</g></g>`;
 }
 // Names may move or be omitted when crowded; equipment never moves to fit a label.
 export function equipmentLabels(items,occupied,bounds){
@@ -32,7 +32,7 @@ export function equipmentLabels(items,occupied,bounds){
   const candidates=[{x:i.x-w/2,y:b.y+b.h+6,w,h},{x:i.x-w/2,y:b.y-h-6,w,h},{x:b.x+b.w+6,y:i.y-h/2,w,h},{x:b.x-w-6,y:i.y-h/2,w,h}];
   const area=i.bounds||bounds;
   const box=candidates.find(a=>a.x>=area.x&&a.y>=area.y&&a.x+w<=area.x+area.w&&a.y+h<=area.y+area.h&&!used.some(b=>hits(a,b)));
-  if(!box)continue;used.push(box);result.push(`<g pointer-events="none"><rect x="${box.x}" y="${box.y}" width="${w}" height="${h}" rx="4" fill="${i.selected?'#def4ec':'#ffffff'}" fill-opacity=".92"/><text x="${box.x+w/2}" y="${box.y+14}" text-anchor="middle" font-size="12" fill="#315368">${e(name)}</text></g>`);
+  if(!box)continue;used.push(box);result.push(`<g class="plan-object-name" pointer-events="none"><rect x="${box.x}" y="${box.y}" width="${w}" height="${h}" rx="4" fill="${i.selected?'#def4ec':'#ffffff'}" fill-opacity=".92"/><text x="${box.x+w/2}" y="${box.y+14}" text-anchor="middle" font-size="12" fill="#315368">${e(name)}</text></g>`);
  }
  return result.join('');
 }
