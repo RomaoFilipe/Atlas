@@ -20,6 +20,89 @@
 
 ---
 
+## Circuitos entre filiais e etiquetas QR
+
+Em **Ligações entre locais**, documente operador, referência, capacidade e circuitos
+alternativos, e consulte o diagrama entre edifícios. Em **Equipamentos → Etiquetas
+QR**, prepare etiquetas A4 por equipamento ou por saída da tomada. A leitura abre
+a ficha e confirma que pertence ao projeto correto.
+
+Consulte o [guia de circuitos WAN e etiquetas](docs/wan-labels.md).
+
+## Inventário em lote e pendências
+
+Em **Equipamentos → Importar Excel / CSV**, carregue inventário com localização,
+IP, VLAN, número de série e responsável. O lote é validado e revisto antes de
+aplicar; erros impedem a importação parcial. Pode indicar bastidor e unidades U.
+
+Em **Pendências e capacidade**, filtre por país ou unidade para consultar garantias,
+responsáveis por atribuir, ligações por documentar e capacidade registada dos
+switches e bastidores. Os itens abrem o formulário ou ficha correspondentes.
+
+Consulte o [guia de importação e pendências](docs/equipment-import.md).
+
+## Empresa e filiais internacionais
+
+Abra **Empresa e unidades** para configurar uma filial por formulário simples ou
+criar várias a partir de Excel / CSV, com revisão antes de aplicar. A navegação
+agrupa países, unidades, edifícios, pisos e salas. Cada unidade pode ter cidade,
+fuso, responsável e domínio de endereçamento próprios. Perfis de escritório,
+armazém ou datacenter preparam os espaços sem inventar equipamentos.
+
+Consulte [configuração empresarial e limites atuais](docs/organization.md).
+O modo local continua a usar um projeto partilhado sem permissões por equipa.
+
+## Planta técnica de rede
+
+A aplicação abre na planta do piso, com as ligações de dados visíveis. A biblioteca
+permite colocar equipamentos nas salas. As tomadas apresentam as portas F1/F2:
+clique para criar uma ligação numa saída livre ou consultar o cabo de uma saída ocupada.
+O painel abaixo da planta reúne equipamentos de rede, portas e cablagem do piso.
+Selecione um bastidor para consultar os equipamentos instalados e as suas portas.
+As camadas permitem ocultar portas RJ45, energia, etiquetas ou ligações.
+Sem um projeto guardado, o exemplo inicial mostra tomadas duplas e um mini-switch.
+
+## Arranque local em um comando
+
+Com Docker e Docker Compose instalados, execute na pasta do projeto:
+
+```bash
+docker compose up --build
+```
+
+Abra **http://localhost:3000**. O comando compila a aplicação, prepara a base de dados,
+cria as chaves de backup e inicia o servidor. Não precisa de configurar contas ou serviços cloud.
+O volume `atlas-data` conserva projetos, versões, anexos e chaves entre arranques.
+Para parar, use Ctrl+C; para voltar a iniciar, repita o comando. Não elimine o volume
+se quiser conservar os dados e conseguir abrir os backups antigos.
+
+**Assistente de planta com Ollama no Docker:** inicie a aplicação e o serviço local de IA com `docker compose --profile ai up --build -d`. Descarregue um modelo gratuito, por exemplo `docker compose exec ollama ollama pull qwen2.5:3b`, e abra uma sala na planta 2D. O botão **Pedir ajuda à IA para organizar** permite descrever a disposição pretendida; reveja as posições e aplique apenas as que o Atlas validar. O primeiro descarregamento do modelo requer Internet e espaço em disco. Os dados da planta são enviados apenas ao Ollama local. Sem o perfil `ai`, a aplicação continua a funcionar sem o assistente.
+
+**Sem Docker:** com Node.js **22.13 ou superior**, basta executar `npm start`.
+Não é necessário instalar dependências para este arranque. Os dados ficam em `.atlas-local/`. Para ativar a IA neste modo, instale e inicie o Ollama no mesmo computador e descarregue um modelo; o Atlas procura o serviço em `http://127.0.0.1:11434` por predefinição. Pode definir outro endereço com `ATLAS_OLLAMA_URL`.
+Pode mudar a porta com `PORT=3001 npm start` e a pasta com `ATLAS_DATA_DIR=/caminho npm start`.
+Copie toda a pasta de dados, incluindo as chaves, para conservar uma instalação local.
+Os dados do Docker e do arranque direto são independentes.
+
+Este é um modo para uma pessoa, sem login. No Raspberry Pi, o Docker também permite
+acesso por Wi-Fi em **http://192.168.1.103:3000**. Todos os dispositivos com acesso
+a esta porta usam o mesmo projeto. Se o IP mudar, configure `ATLAS_ALLOWED_HOSTS`
+no ficheiro `.env` (endereços separados por vírgulas, sem porta) e reinicie o Compose.
+O arranque direto com `npm start` continua limitado a localhost por predefinição.
+A identidade local é fixa; backups da instalação Sites continuam associados à conta original.
+Para utilização partilhada, mantenha o alojamento com autenticação descrito abaixo.
+
+Na aplicação, abra **Configurar o projeto**, acima do mapa: **Criar espaços →
+Equipar salas → Documentar ligações → Rever pendências**. O guia destaca a próxima
+ação, abre a criação de equipamentos numa sala e encaminha as ligações em falta
+para as tarefas da sala. As propostas e portas por identificar continuam pendentes.
+A revisão abre o painel de pendências, com ações para resolver os registos em falta.
+Redes/VLANs e empresa ficam numa secção opcional. O progresso acompanha os dados
+atuais, incluindo alterações desfeitas; pode interromper e retomar mais tarde.
+Nos exemplos, o guia indica que os dados e pendências pertencem ao exemplo.
+As verificações são documentais e não confirmam a instalação física.
+
+
 <a id="english"></a>
 
 ## 🇬🇧 English
@@ -143,7 +226,7 @@ Build before running tests: server-side tests use the generated Worker. The buil
 | `node --test tests/*.test.mjs` | Run model, network, layout, API, isolation and encrypted-export tests. |
 | `npm run db:generate` | Generate Drizzle migration files after schema changes; this does not apply migrations. |
 
-**Runtime setup:** the repository targets the configured Sites hosting environment. It does not currently provide an `npm run dev` script, a standalone login service or a generic one-command deployment.
+**Runtime setup:** the repository targets the configured Sites hosting environment. For local single-user use, run `docker compose up --build` or `npm start` with Node.js 22.13+. The local server supplies persistent storage without a login service.
 
 A working deployment needs the Worker runtime, database migrations, a D1 binding named `DB`, an R2 binding named `ATLAS_ASSETS`, trusted platform authentication and the export keyring secret. Opening `public/index.html` alone does not provide the persistence API.
 
@@ -322,7 +405,7 @@ Execute a compilação antes dos testes: os testes do servidor utilizam o Worker
 | `node --test tests/*.test.mjs` | Executar testes do modelo, rede, plantas, API, isolamento e exportações cifradas. |
 | `npm run db:generate` | Gerar migrações Drizzle após alterações ao esquema; não aplica as migrações. |
 
-**Configuração de execução:** o repositório destina-se ao ambiente Sites configurado. Ainda não inclui um comando `npm run dev`, um serviço autónomo de autenticação ou uma instalação genérica com um único comando.
+**Configuração de execução:** o repositório destina-se ao ambiente Sites configurado. O modo local arranca com `docker compose up --build` ou `npm start` (Node.js 22.13+), com armazenamento persistente e identidade local fixa.
 
 Uma instalação funcional precisa do runtime Worker, das migrações da base de dados, de uma ligação D1 chamada `DB`, de uma ligação R2 chamada `ATLAS_ASSETS`, da autenticação confiável da plataforma e do segredo com as chaves de exportação. Abrir apenas `public/index.html` não disponibiliza a API de persistência.
 

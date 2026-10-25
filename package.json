@@ -1,1 +1,20 @@
-{"name":"atlas-network-editor","version":"3.0.0","private":true,"type":"module","scripts":{"build":"node scripts/build.mjs","db:generate":"drizzle-kit generate"},"devDependencies":{"drizzle-kit":"0.31.4","drizzle-orm":"0.44.5"}}
+{
+  "name": "atlas-network-editor",
+  "version": "3.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "db:generate": "drizzle-kit generate",
+    "start": "node scripts/start.mjs",
+    "dev": "node scripts/start.mjs",
+    "test": "node scripts/build.mjs && node --test tests/*.test.mjs"
+  },
+  "devDependencies": {
+    "drizzle-kit": "0.31.4",
+    "drizzle-orm": "0.44.5"
+  },
+  "engines": {
+    "node": ">=22.13.0"
+  }
+}

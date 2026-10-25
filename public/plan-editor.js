@@ -5,6 +5,7 @@ import {positionLock} from './map-locks.js';
 import {rotateEquipment,rotationBlock} from './equipment-rotation.js';
 import {placement,applyPlacement,placeNew,pointerAngle,duplicateInRoom,roomAt} from './plan-editing.js';
 import {mapSocketChoices,mapSourcePorts} from './map-connection.js';
+import {initPlanAssistant} from './plan-assistant.js';
 const catalogue=['Posto de trabalho','Computador','Portátil','Impressora','Telefone IP','Tomada de rede','Mini-switch','Wi-Fi','Câmara'];
 export function initPlanEditor(app){
  const canvas=document.querySelector('#planCanvas'),wrap=document.createElement('div');wrap.className='plan-edit-wrap';canvas.before(wrap);wrap.append(canvas);
@@ -13,6 +14,7 @@ export function initPlanEditor(app){
  const library=document.createElement('section');library.className='plan-library';wrap.before(library);
  const message=document.createElement('p');message.className='plan-editor-message';message.setAttribute('role','status');wrap.before(message);
  const connection=document.createElement('section');connection.className='plan-connection-preview';wrap.before(connection);
+ const assistant=initPlanAssistant({get:state,change:app.change});
  let moving='',placing='',gesture=null,ghost=null,linkSource='',sourcePort='',socketChoice='',scope='';
  const state=()=>app.get(),enabled=()=>{const s=state();return s.ready&&s.mode==='plan'&&!s.blocks&&s.floorId&&!canvas.querySelector('svg')?.dataset.circuit;};
  const svg=()=>canvas.querySelector('svg');
@@ -25,7 +27,8 @@ export function initPlanEditor(app){
  function placementNotice(t){notice((t.outside?'⚠ Fora dos limites da sala. ':'')+(t.overlaps.length?'⚠ Sobreposição com '+t.overlaps.map(d=>d.name).join(', ')+'. ':'')+(!t.outside&&!t.overlaps.length?'Posição livre. ':'')+'Largue para aplicar · Esc cancela · Alt desativa o encaixe.');}
  function preview(d,target){const g=app.geometry();overlay(planEquipment({...d,...target},g.x(target.x),g.y(target.z),g.scale,{selected:true,warning:target.outside||target.overlaps?.length})+(target.guides||[]).map(l=>`<path d="${l.axis==='x'?`M${g.x(l.at)} ${g.y(l.from)-30}V${g.y(l.to)+30}`:`M${g.x(l.from)-30} ${g.y(l.at)}H${g.x(l.to)+30}`}" fill="none" stroke="#008773" stroke-width="2" stroke-dasharray="5 4"/>`).join(''));}
  function create(ev){const pt=point(ev);if(!pt)return;const g=app.geometry(),s=state(),type=placing;try{let id;const saved=app.change(p=>{id=placeNew(p,{type,floorId:s.floorId,roomId:s.roomId,x:g.unx(pt.x),z:g.uny(pt.y)});},'adicionar '+type);if(!saved)return;placing='';clear();app.select('devices',id);notice(type+' adicionado à sala. Pode mover, rodar ou desfazer.');}catch(err){notice(err.message);}}
- library.innerHTML='<details><summary>＋ Biblioteca de equipamentos</summary><p>Arraste para uma sala ou escolha um equipamento e toque no local. Esc cancela.</p><div>'+catalogue.map(type=>'<button draggable="true" data-place="'+e(type)+'">'+e(type)+'</button>').join('')+'</div></details><label><input type="checkbox" data-snap checked> Encaixar e alinhar</label>';
+ library.innerHTML='<button type="button" class="plan-assistant-launch">✨ Pedir ajuda à IA para organizar</button><details><summary>＋ Biblioteca de equipamentos</summary><p>Arraste para uma sala ou escolha um equipamento e toque no local. Esc cancela.</p><div>'+catalogue.map(type=>'<button draggable="true" data-place="'+e(type)+'">'+e(type)+'</button>').join('')+'</div></details><label><input type="checkbox" data-snap checked> Encaixar e alinhar</label>';
+ library.querySelector('.plan-assistant-launch').onclick=()=>assistant.open();
  library.onclick=ev=>{const b=ev.target.closest('[data-place]');if(!b)return;placing=b.dataset.place;linkSource='';moving='';render();notice('Escolha um ponto numa sala para colocar '+placing+'. Esc cancela.');};
  library.ondragstart=ev=>{const b=ev.target.closest('[data-place]');if(!b)return;placing=b.dataset.place;ev.dataTransfer.setData('text/atlas-equipment',placing);ev.dataTransfer.effectAllowed='copy';};
  canvas.addEventListener('dragover',ev=>{if(enabled()&&placing){ev.preventDefault();ev.dataTransfer.dropEffect='copy';}});

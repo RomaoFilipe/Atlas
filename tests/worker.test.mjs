@@ -26,3 +26,13 @@ test('complete journey: build rooms, add equipment, connect, move, rotate, save 
  const link={id:uid('link'),a,b,portA:'Ethernet1',portB:'F1',kind:'copper',speed:'1 Gbps',vlans:[],label:'Cabo de teste',category:'Cat 6',color:'#3563c7',length:null,routeNote:'',waypoints:[]};validateCableChoice(p,link);p.links.push(link);const dest=building.rooms[1];moveToRoom(p,a,{x:building.site.x+dest.x,z:building.site.z+dest.z,rotation:0},dest.id);rotateEquipment(p,a,75);normalizeProject(p);validate(p);
  const saved=await worker.fetch(req('PUT',{project:p,revision:0},'journey-owner'),{DB});assert.equal(saved.status,200);const reopened=await worker.fetch(req('GET',null,'journey-owner'),{DB});assert.equal(reopened.status,200);const restored=(await reopened.json()).project;assert.deepEqual(restored,p);assert.equal(restored.devices.find(d=>d.id===a).rotation,75);assert.equal(restored.devices.find(d=>d.id===a).room,dest.id);assert.equal(restored.links.length,1);
 });
+
+test('organization hierarchy and separated address domains persist through project API',async()=>{
+ const {planOrganization}=await import('../public/organization.js');const {createRoomDevices}=await import('../public/room-actions.js');
+ const project=planOrganization({version:3,name:'Base',sites:[],floors:[],rooms:[],racks:[],devices:[],links:[],nets:[],templates:[]},{name:'Empresa internacional',rows:[{country:'PT',city:'Lisboa',unit:'LIS',name:'Sede',profile:'office',floors:1,timezone:'Europe/Lisbon',contact:'TI Portugal'},{country:'DE',city:'Berlim',unit:'BER',name:'Filial',profile:'office',floors:1,timezone:'Europe/Berlin',contact:'TI Alemanha'}]}).project;
+ for(const room of [project.rooms[0],project.rooms[4]]){const id=createRoomDevices(project,{roomId:room.id,name:'PC '+room.id,type:'Computador'})[0];project.devices.find(d=>d.id===id).ip='192.168.1.10';}
+ assert.equal((await worker.fetch(req('PUT',{project,revision:0},'corporate-user'),{DB})).status,200);
+ const loaded=await (await worker.fetch(req('GET',null,'corporate-user'),{DB})).json();assert.equal(loaded.project.organization.name,'Empresa internacional');assert.equal(loaded.project.sites[1].branch.timezone,'Europe/Berlin');assert.equal(loaded.project.devices[0].ip,loaded.project.devices[1].ip);
+ const invalid=structuredClone(project);invalid.sites.forEach(site=>site.branch.networkDomain='SAME');assert.equal((await worker.fetch(req('PUT',{project:invalid,revision:1},'corporate-user'),{DB})).status,400);
+ assert.equal((await (await worker.fetch(req('GET',null,'corporate-user'),{DB})).json()).revision,1);
+});

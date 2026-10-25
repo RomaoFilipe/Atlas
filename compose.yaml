@@ -1,0 +1,20 @@
+services:
+  atlas:
+    build: .
+    ports:
+      - "0.0.0.0:3000:3000"
+    environment:
+      ATLAS_ALLOWED_HOSTS: ${ATLAS_ALLOWED_HOSTS:-192.168.1.103,romao.local}
+      ATLAS_OLLAMA_URL: http://ollama:11434
+    volumes:
+      - atlas-data:/data
+    restart: unless-stopped
+  ollama:
+    image: ollama/ollama:latest
+    profiles: ["ai"]
+    volumes:
+      - ollama-data:/root/.ollama
+    restart: unless-stopped
+volumes:
+  atlas-data:
+  ollama-data:
