@@ -80,7 +80,8 @@ não pode ser removida nem despromovida pela interface.
 - Administrador: edita o projeto e gere as contas da organização.
 - Editor: edita o projeto; não gere contas.
 - Leitor: consulta projeto, inventário, anexos, histórico e auditoria; pedidos
-  de escrita são recusados no servidor, incluindo os endpoints de importação.
+  de alteração do projeto são recusados no servidor, incluindo importações. Pode
+  comunicar um problema através de Pedidos e tarefas.
 
 A auditoria regista o utilizador autenticado. O servidor ignora cabeçalhos de
 identidade enviados pelo navegador. Sessões usam cookies HttpOnly/SameSite,
@@ -102,7 +103,8 @@ npm run account -- list
 A variável é apenas lida pelo comando; não é escrita no `.env`. O ficheiro
 `accounts.json` fica na pasta de dados, com permissões restritas. Guarde essa
 pasta, a base SQLite, os anexos e o keyring nos backups. Contas locais não são
-SSO empresarial nem permissões por unidade. A aplicação alojada mantém a
+SSO empresarial. O administrador já pode atribuir acesso apenas a unidades
+selecionadas; veja [os percursos de clientes](customer-workflows.md). A aplicação alojada mantém a
 identidade autenticada fornecida pelo alojamento; esta gestão de contas pertence
 ao servidor Node local. Para acesso remoto, termine HTTPS no servidor/proxy;
 o modo de arranque documentado usa HTTP em loopback.

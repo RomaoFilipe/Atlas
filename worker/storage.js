@@ -39,6 +39,7 @@ async function inventoryAPI(request,env,url,owner){
  const params=url.searchParams,limit=Number(params.get('limit')||100),after=Number(params.get('after')||0),query=params.get('q')||'';
  if(!Number.isInteger(limit)||limit<1||limit>200||!Number.isInteger(after)||after<0||query.length>160)return json({error:'Paginação inválida.'},400);
  const clauses=['owner=?',"kind='devices'",'position>=?'],args=[owner,after];for(const key of ['site','floor','room'])if(params.has(key)){const value=params.get(key);if(!/^[-a-zA-Z0-9_]{1,80}$/.test(value))return json({error:'Localização inválida.'},400);clauses.push(key+'=?');args.push(value);}
+ if(params.has('unit')){const unit=params.get('unit');if(unit.length>100)return json({error:'Unidade inválida.'},400);clauses.push("site IN (SELECT id FROM atlas_entities WHERE owner=? AND kind='sites' AND CASE WHEN json_extract(document,'$.branch.unit') IS NOT NULL THEN json_extract(document,'$.branch.country')||'/'||json_extract(document,'$.branch.unit') ELSE 'site:'||id END=?)");args.push(owner,unit);}
  if(url.pathname==='/api/plant'&&!params.has('floor'))return json({error:'Indique o piso da planta.'},400);
  if(query){clauses.push('instr(search,lower(?))>0');args.push(query);}
  const snapshot=await env.DB.prepare("SELECT revision,(SELECT json_group_array(json_object('position',position,'document',json(document))) FROM (SELECT position,document FROM atlas_entities WHERE "+clauses.join(' AND ')+" ORDER BY position LIMIT ?)) AS items FROM atlas_workspaces WHERE owner=?").bind(...args,limit+1,owner).first();

@@ -50,6 +50,13 @@
       "when": 1793466100000,
       "tag": "0006_entity_storage",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1793473410032,
+      "tag": "0007_customer_tasks",
+      "breakpoints": true
     }
   ]
 }

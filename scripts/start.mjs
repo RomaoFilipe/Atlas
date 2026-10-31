@@ -1,3 +1,4 @@
+import {accountStore} from './accounts.mjs';
 import {createAuth} from './auth.mjs';
 import fs from 'node:fs';
 import {createChatHandler, privateText, readAssistantBody} from './assistant.mjs';
@@ -77,14 +78,14 @@ const server=http.createServer(async(req,res)=>{
  const origin=`http://${authority}`;
  if(req.headers.origin&&req.headers.origin!==origin){res.writeHead(403);res.end('Origem não autorizada.');return;}
  const access=await authenticate(req,res,new URL(req.url,origin));if(!access)return;
- if(access.role==='reader'&&!['GET','HEAD'].includes(req.method)){res.writeHead(403,{'Content-Type':'application/json'});res.end(JSON.stringify({error:'A conta de leitor não pode alterar dados.'}));return;}
+ if(access.role==='reader'&&!['GET','HEAD'].includes(req.method)&&!(req.method==='POST'&&new URL(req.url,origin).pathname==='/api/tasks')){res.writeHead(403,{'Content-Type':'application/json'});res.end(JSON.stringify({error:'A conta de leitor não pode alterar dados.'}));return;}
  if(new URL(req.url,origin).pathname==='/api/assistant/chat'){await chatRequest(req,res);return;}
  if(new URL(req.url,origin).pathname==='/api/assistant/layout'){await assistantRequest(req,res);return;}
  const headers=new Headers();for(const [key,value] of Object.entries(req.headers))if(value!==undefined)headers.set(key,Array.isArray(value)?value.join(', '):value);
  headers.delete('oai-authenticated-user-id');if(access.actor)headers.set('oai-authenticated-user-id',access.actor);
  const init={method:req.method,headers};
  if(!['GET','HEAD'].includes(req.method)){init.body=req;init.duplex='half';}
- const response=await worker.fetch(new Request(new URL(req.url,origin),init),{...env,ATLAS_ACCESS:access});
+ const response=await worker.fetch(new Request(new URL(req.url,origin),init),{...env,ATLAS_ACCESS:access,ATLAS_MEMBERS:accountStore(directory).exists()?accountStore(directory).read().filter(a=>a.organization===access.organization).map(({username,role,units})=>({username,role,units:units??null})):undefined});
  res.writeHead(response.status,Object.fromEntries(response.headers));
  res.end(Buffer.from(await response.arrayBuffer()));
  }catch(error){console.error(error.message);if(!res.headersSent)res.writeHead(500,{'Content-Type':'text/plain; charset=utf-8'});res.end('Não foi possível concluir o pedido.');}

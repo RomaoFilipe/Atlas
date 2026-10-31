@@ -1,7 +1,7 @@
 import {test,expect} from '@playwright/test';
 test('global search opens equipment and its mobile maintenance and ports sheet',async({page})=>{
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
- await page.setViewportSize({width:390,height:844});await page.goto('/');await expect(page.locator('#saveBadge')).toContainText(/Guardado|Exemplo/);
+ await page.setViewportSize({width:390,height:844});await page.goto('/editor.html');await expect(page.locator('#saveBadge')).toContainText(/Guardado|Exemplo/);
  const device={name:'POSTO-01'};
  await page.locator('#search').fill(device.name);await page.locator('#search').press('Enter');
  await page.locator('#equipmentRecordButton').click();await expect(page.locator('#equipmentRecord')).toContainText('Próxima revisão');await expect(page.locator('#equipmentRecord')).toContainText('Portas e ligações');

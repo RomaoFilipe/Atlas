@@ -1,11 +1,12 @@
 <div align="center">
 
-Atualização de 31/10/2026: VLANs com planos por domínio, contas locais com
-administrador/editor/leitor, auditoria por utilizador, armazenamento por entidade
-e inventário paginado em `/inventory.html`. Abra `/account` para ativar contas.
-Limites, migração, APIs e configuração: [Empresa e organizações](docs/organization.md).
-O editor completo mantém carregamento integral; a nova consulta de plantas
-carrega equipamentos por piso. SSO e permissões por unidade continuam pendentes.
+Atualização de 31/10/2026: página inicial Hoje, portal do cliente com permissões
+por unidade no servidor local, preparação guiada de salas, pedidos e tarefas,
+ficha móvel com fotografia/intervenção, revisão de conflitos e relatório de
+entrega personalizado. Percursos e limites: [Guia para equipas e clientes](docs/customer-workflows.md).
+O editor completo está em `/editor.html`; a raiz abre a página Hoje.
+VLANs por domínio, armazenamento por entidade e inventário paginado mantêm-se.
+A configuração de contas é feita em `/account`. SSO continua pendente.
 
 
 # ATLAS
