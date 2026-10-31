@@ -52,6 +52,9 @@ A árvore de navegação agrupa os locais por país e unidade. A pesquisa global
 inclui códigos de unidade, cidade, país (código), responsável e domínio. O painel
 da empresa filtra locais por país e por texto.
 
+A mesma conta pode agora ter concessões em vários clientes e alternar em
+**Clientes**, sem terminar sessão. Consulte [o guia de serviços](service-workflows.md).
+
 ## Planos de VLAN por domínio
 
 Em **Gerir redes / VLANs → Editar**, ative **Plano próprio** para cada domínio e

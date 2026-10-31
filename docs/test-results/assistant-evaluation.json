@@ -1,7 +1,7 @@
 {
-  "date": "2026-10-31T19:10:52.760Z",
+  "date": "2026-10-31T19:47:49.344Z",
   "model": "qwen3:14b",
-  "knowledgeVersion": "2026-10-31.2",
+  "knowledgeVersion": "2026-10-31.3",
   "environment": {
     "node": "v22.23.3",
     "platform": "linux",
@@ -93,7 +93,7 @@
     {
       "id": "maintenance-overdue",
       "engine": "project",
-      "latencyMs": 10,
+      "latencyMs": 7,
       "checks": {
         "answered": true,
         "readOnly": true,
@@ -134,7 +134,7 @@
     {
       "id": "equip-room-bulk",
       "engine": "local-command",
-      "latencyMs": 14,
+      "latencyMs": 12,
       "checks": {
         "recognized": true,
         "mode": true,
@@ -146,7 +146,7 @@
     {
       "id": "room-vlan-bulk",
       "engine": "local-command",
-      "latencyMs": 4,
+      "latencyMs": 3,
       "checks": {
         "recognized": true,
         "mode": true,
@@ -158,7 +158,7 @@
     {
       "id": "save-room-model",
       "engine": "local-command",
-      "latencyMs": 4,
+      "latencyMs": 3,
       "checks": {
         "recognized": true,
         "mode": true,
@@ -170,7 +170,7 @@
     {
       "id": "new-vlan-reference",
       "engine": "local-command",
-      "latencyMs": 6,
+      "latencyMs": 5,
       "checks": {
         "recognized": true,
         "mode": true,
@@ -194,7 +194,7 @@
     {
       "id": "configure-ip",
       "engine": "local-command",
-      "latencyMs": 2,
+      "latencyMs": 1,
       "checks": {
         "recognized": true,
         "mode": true,
@@ -230,7 +230,7 @@
     {
       "id": "insert-switch",
       "engine": "local-command",
-      "latencyMs": 2,
+      "latencyMs": 1,
       "checks": {
         "recognized": true,
         "mode": true,
@@ -254,7 +254,7 @@
     {
       "id": "insert-vm",
       "engine": "local-command",
-      "latencyMs": 2,
+      "latencyMs": 1,
       "checks": {
         "recognized": true,
         "mode": true,
@@ -278,7 +278,7 @@
     {
       "id": "complete-office-20",
       "engine": "local-command",
-      "latencyMs": 30,
+      "latencyMs": 23,
       "checks": {
         "computers": true,
         "printer": true,
@@ -313,7 +313,7 @@
     {
       "id": "repair-patch-channel",
       "engine": "local-command",
-      "latencyMs": 6,
+      "latencyMs": 5,
       "checks": {
         "result": true,
         "unchanged": true
@@ -323,7 +323,7 @@
     {
       "id": "staged-branch-40",
       "engine": "local-task",
-      "latencyMs": 123,
+      "latencyMs": 88,
       "checks": {
         "completed": true,
         "floors": true,
@@ -338,7 +338,7 @@
       "engine": "documentation",
       "prompt": "Como criar um edifício no Atlas?",
       "status": 200,
-      "latencyMs": 3,
+      "latencyMs": 2,
       "response": {
         "reply": "Criar edifícios, pisos e salas\n1. Usa + Edifício e indica o nome, pisos e salas.\n2. Confirma as quantidades antes de criar. Equipamentos e cabos são adicionados separadamente.\n3. Navega pelo caminho edifício → piso → sala.\nUma estrutura de espaços navegável.\nSe não houver espaço livre, ajusta as medidas ou a disposição. Desbloqueia o espaço antes de o mover.",
         "mode": "advice",
@@ -349,7 +349,7 @@
             "title": "Criar edifícios, pisos e salas"
           }
         ],
-        "knowledgeVersion": "2026-10-31.2",
+        "knowledgeVersion": "2026-10-31.3",
         "latencyMs": 2
       },
       "checks": {
@@ -365,7 +365,7 @@
       "engine": "documentation",
       "prompt": "Como guardar um backup e restaurar noutra instalação?",
       "status": 200,
-      "latencyMs": 1,
+      "latencyMs": 0,
       "response": {
         "reply": "Exportar e restaurar um backup\n1. Abre Projeto → Exportar cifrado e guarda o ficheiro .atlasenc.\n2. Para restaurar, usa Projeto → Importar projeto, escolhe o ficheiro e revê a substituição.\n3. Para conservar toda a instalação local, copia a pasta de dados incluindo as chaves; com Docker, conserva o volume atlas-data.\nBackup protegido do projeto ou projeto importado.\nOs backups dependem da identidade, instalação e chaves originais. Um ficheiro não é automaticamente portável entre instalações. Se a importação falhar, preserva o ficheiro e as chaves originais. Anexos e imagens exigem também a cópia da instalação.",
         "mode": "advice",
@@ -376,8 +376,8 @@
             "title": "Exportar e restaurar um backup"
           }
         ],
-        "knowledgeVersion": "2026-10-31.2",
-        "latencyMs": 1
+        "knowledgeVersion": "2026-10-31.3",
+        "latencyMs": 0
       },
       "checks": {
         "http": true,

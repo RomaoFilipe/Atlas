@@ -4,6 +4,7 @@ async function featureAPI(request,env,url,owner){
  if(!owner)return json({error:'Inicie sessão para continuar.'},401);
  if(!['GET','HEAD'].includes(request.method)){const origin=request.headers.get('origin');if(origin&&origin!==url.origin)return json({error:'Origem não autorizada.'},403);}
  try{
+ if(request.method==='POST'&&['/api/assets','/api/equipment-files'].includes(path))await authorizedUploadSite(request,env,owner);
  if(path.startsWith('/api/audit')){
   if(path!=='/api/audit')return json({error:'Registo não encontrado.'},404);
   if(request.method!=='GET')return json({error:'A auditoria não pode ser alterada.'},405);
@@ -35,7 +36,7 @@ async function featureAPI(request,env,url,owner){
  else return json({error:'Escolha uma fotografia PNG, JPEG, WebP ou um documento PDF.'},400);
  const name=decodeURIComponent(request.headers.get('X-File-Name')||'anexo').replace(/[\x00-\x1f\x7f]/g,'').slice(0,200)||'anexo',id=crypto.randomUUID();
  await env.ATLAS_ASSETS.put(hash+'/equipment/'+id,bytes,{httpMetadata:{contentType:type},customMetadata:{name}});
- return json({id,name,type,size:bytes.length},201);
+ await registerUploadedFile(request,env,owner,{id,name,type,size:bytes.length});return json({id,name,type,size:bytes.length},201);
  }
  const match=path.match(/^\/api\/equipment-files\/([a-zA-Z0-9_-]{1,80})$/);
  if(match&&['GET','HEAD'].includes(request.method)){const object=await env.ATLAS_ASSETS.get(hash+'/equipment/'+match[1]);if(!object)return json({error:'Anexo não encontrado nesta conta.'},404);
@@ -44,7 +45,7 @@ async function featureAPI(request,env,url,owner){
  }
  }
  if(path.startsWith('/api/assets')){if(!env.ATLAS_ASSETS)return json({error:'Armazenamento de plantas indisponível.'},503);const hash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(owner)))).map(x=>x.toString(16).padStart(2,'0')).join('');
- if(path==='/api/assets'&&request.method==='POST'){const bytes=await readBounded(request,5000000);let type;if(bytes[0]===137&&bytes[1]===80&&bytes[2]===78&&bytes[3]===71)type='image/png';else if(bytes[0]===255&&bytes[1]===216&&bytes[2]===255)type='image/jpeg';else if(new TextDecoder().decode(bytes.slice(0,4))==='RIFF'&&new TextDecoder().decode(bytes.slice(8,12))==='WEBP')type='image/webp';else return json({error:'Use uma imagem PNG, JPEG ou WebP.'},400);const id=crypto.randomUUID();await env.ATLAS_ASSETS.put(hash+'/'+id,bytes,{httpMetadata:{contentType:type}});return json({id,url:'/api/assets/'+id},201);}
+ if(path==='/api/assets'&&request.method==='POST'){const bytes=await readBounded(request,5000000);let type;if(bytes[0]===137&&bytes[1]===80&&bytes[2]===78&&bytes[3]===71)type='image/png';else if(bytes[0]===255&&bytes[1]===216&&bytes[2]===255)type='image/jpeg';else if(new TextDecoder().decode(bytes.slice(0,4))==='RIFF'&&new TextDecoder().decode(bytes.slice(8,12))==='WEBP')type='image/webp';else return json({error:'Use uma imagem PNG, JPEG ou WebP.'},400);const id=crypto.randomUUID();await env.ATLAS_ASSETS.put(hash+'/'+id,bytes,{httpMetadata:{contentType:type}});await registerUploadedFile(request,env,owner,{id,name:'Planta',type,size:bytes.length});return json({id,url:'/api/assets/'+id},201);}
  const asset=path.match(/^\/api\/assets\/([a-zA-Z0-9_-]+)$/);if(asset&&['GET','HEAD'].includes(request.method)){const object=await env.ATLAS_ASSETS.get(hash+'/'+asset[1]);if(!object)return json({error:'Imagem não encontrada.'},404);return new Response(request.method==='HEAD'?null:object.body,{headers:{'Content-Type':object.httpMetadata?.contentType||'image/png','Cache-Control':'private, max-age=3600','X-Content-Type-Options':'nosniff'}});}}
  return json({error:'Operação não suportada.'},405);
  }catch(err){console.error('Feature API failure',err.message);return json({error:err.message||'Não foi possível concluir a operação.'},400);}

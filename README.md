@@ -1,12 +1,14 @@
 <div align="center">
 
-Atualização de 31/10/2026: página inicial Hoje, portal do cliente com permissões
-por unidade no servidor local, preparação guiada de salas, pedidos e tarefas,
-ficha móvel com fotografia/intervenção, revisão de conflitos e relatório de
-entrega personalizado. Percursos e limites: [Guia para equipas e clientes](docs/customer-workflows.md).
-O editor completo está em `/editor.html`; a raiz abre a página Hoje.
-VLANs por domínio, armazenamento por entidade e inventário paginado mantêm-se.
-A configuração de contas é feita em `/account`. SSO continua pendente.
+Atualização de 31/10/2026: uma conta técnica pode alternar entre clientes com
+permissões próprias. Inclui manutenção recorrente, notificações internas
+configuráveis, checklists com evidências, fichas e intervenções offline com
+sincronização, confirmação de entregas por versão e importação com mapeamento
+de colunas e revisão de duplicados. Veja [o guia de serviços](docs/service-workflows.md).
+A raiz abre Hoje; o editor completo está em `/editor.html`. Ative contas em
+`/account` para gerir clientes. Offline requer HTTPS ou localhost e uma descarga
+prévia; os avisos são dentro do Atlas, sem envio de email.
+
 
 
 # ATLAS

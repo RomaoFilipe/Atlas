@@ -5,6 +5,9 @@ A página inicial é **Hoje** (`/` ou `/home.html`). O editor completo mantém-s
 trabalho no terreno. O namespace do projeto e a porta da etiqueta continuam a
 ser verificados. Depois do login, um QR regressa à ficha pedida.
 
+As funcionalidades de vários clientes, recorrência, notificações, checklists,
+offline, aceitação e importação orientada estão em [service-workflows.md](service-workflows.md).
+
 ## O trabalho de hoje
 
 A página inicial reúne equipamentos, revisões a 30 dias, pendências documentais
@@ -83,7 +86,9 @@ aceitam PNG/JPEG/WebP até 5 MB, dentro do limite de 20 anexos por equipamento.
 O rascunho textual fica em sessionStorage, separado por conta, organização,
 projeto e equipamento. Uma fotografia só pode ser retomada depois de carregada;
 um ficheiro apenas selecionado precisa de ser selecionado novamente após
-recarregar. Isto não é edição offline: guardar e carregar fotografias exige rede.
+recarregar. Para guardar diretamente e carregar fotografias exige-se rede. O novo percurso
+**Offline** permite descarregar fichas e conservar intervenções/fotografias para
+sincronização posterior; veja [o guia offline](service-workflows.md#fichas-e-intervenções-offline).
 
 A gravação lê a revisão atual, conserva campos não alterados e deteta mudanças
 concorrentes nos campos editados. Uma intervenção com o mesmo ID é reconhecida

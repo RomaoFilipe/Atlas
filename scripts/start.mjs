@@ -1,4 +1,5 @@
-import {accountStore} from './accounts.mjs';
+import {allowedReaderRequest} from '../public/service-model.js';
+import {accountStore,accountGrants} from './accounts.mjs';
 import {createAuth} from './auth.mjs';
 import fs from 'node:fs';
 import {createChatHandler, privateText, readAssistantBody} from './assistant.mjs';
@@ -78,18 +79,21 @@ const server=http.createServer(async(req,res)=>{
  const origin=`http://${authority}`;
  if(req.headers.origin&&req.headers.origin!==origin){res.writeHead(403);res.end('Origem não autorizada.');return;}
  const access=await authenticate(req,res,new URL(req.url,origin));if(!access)return;
- if(access.role==='reader'&&!['GET','HEAD'].includes(req.method)&&!(req.method==='POST'&&new URL(req.url,origin).pathname==='/api/tasks')){res.writeHead(403,{'Content-Type':'application/json'});res.end(JSON.stringify({error:'A conta de leitor não pode alterar dados.'}));return;}
+ if(access.role==='reader'&&!['GET','HEAD'].includes(req.method)&&!allowedReaderRequest(new URL(req.url,origin).pathname,req.method)){res.writeHead(403,{'Content-Type':'application/json'});res.end(JSON.stringify({error:'A conta de leitor não pode alterar dados.'}));return;}
  if(new URL(req.url,origin).pathname==='/api/assistant/chat'){await chatRequest(req,res);return;}
  if(new URL(req.url,origin).pathname==='/api/assistant/layout'){await assistantRequest(req,res);return;}
  const headers=new Headers();for(const [key,value] of Object.entries(req.headers))if(value!==undefined)headers.set(key,Array.isArray(value)?value.join(', '):value);
  headers.delete('oai-authenticated-user-id');if(access.actor)headers.set('oai-authenticated-user-id',access.actor);
  const init={method:req.method,headers};
  if(!['GET','HEAD'].includes(req.method)){init.body=req;init.duplex='half';}
- const response=await worker.fetch(new Request(new URL(req.url,origin),init),{...env,ATLAS_ACCESS:access,ATLAS_MEMBERS:accountStore(directory).exists()?accountStore(directory).read().filter(a=>a.organization===access.organization).map(({username,role,units})=>({username,role,units:units??null})):undefined});
+ const response=await worker.fetch(new Request(new URL(req.url,origin),init),{...env,ATLAS_ACCESS:access,ATLAS_MEMBERS:accountStore(directory).exists()?accountStore(directory).read().flatMap(a=>{const g=accountGrants(a).find(g=>g.organization===access.organization);return g?[{username:a.username,role:g.role,units:g.units}]:[];}):undefined});
  res.writeHead(response.status,Object.fromEntries(response.headers));
  res.end(Buffer.from(await response.arrayBuffer()));
  }catch(error){console.error(error.message);if(!res.headersSent)res.writeHead(500,{'Content-Type':'text/plain; charset=utf-8'});res.end('Não foi possível concluir o pedido.');}
 });
+let maintenanceBusy=false;
+async function scheduledMaintenance(){if(maintenanceBusy)return;maintenanceBusy=true;try{const workspaces=db.prepare('SELECT owner FROM atlas_workspaces').all(),accounts=accountStore(directory).exists()?accountStore(directory).read():[];for(const {owner} of workspaces){const organization=owner==='atlas-local'?'default':owner.startsWith('organization:')?owner.slice(13):owner,members=accounts.length?accounts.flatMap(a=>{const grant=accountGrants(a).find(g=>g.organization===organization);return grant?[{username:a.username,role:grant.role,units:grant.units}]:[];}):[{username:'atlas-local',role:'admin',units:null}];const response=await worker.fetch(new Request('http://atlas-internal/api/system/tick',{method:'POST',headers:{'oai-authenticated-user-id':'atlas-scheduler'}}),{...env,ATLAS_SYSTEM:true,ATLAS_ACCESS:{actor:'atlas-scheduler',owner,organization,role:'admin',units:null},ATLAS_MEMBERS:members});if(!response.ok)console.error('Maintenance scheduler: '+response.status);}}catch(error){console.error('Maintenance scheduler failure',error.message);}finally{maintenanceBusy=false;}}
+const maintenanceTimer=setInterval(scheduledMaintenance,60000);maintenanceTimer.unref();
 server.on('error',error=>{console.error(error.code==='EADDRINUSE'?`A porta ${port} já está ocupada. Escolha outra com PORT=3001 npm start.`:error.message);db.close();process.exitCode=1;});
 server.listen(port,host,()=>console.log(`\nAtlas pronto: http://localhost:${port}\n${fs.existsSync(path.join(directory,'accounts.json'))?'Contas por organização · permissões no servidor':'Modo local partilhado · ative contas em /account'} · gravação automática${allowedHosts.length ? "\nRede: " + allowedHosts.map(name=>`http://${name}:${port}`).join(", ") : ""}\nDados, anexos e chaves: ${directory}\nPara parar: Ctrl+C\n`));
-for(const signal of ['SIGINT','SIGTERM'])process.on(signal,()=>server.close(()=>{db.close();process.exit(0);}));
+for(const signal of ['SIGINT','SIGTERM'])process.on(signal,()=>{clearInterval(maintenanceTimer);server.close(()=>{db.close();process.exit(0);});});

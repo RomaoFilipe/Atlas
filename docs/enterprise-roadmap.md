@@ -13,6 +13,10 @@ e as limitações estão em [organization.md](organization.md).
 | Implementado | Consulta paginada e planta por piso | `/inventory.html`, manifest e APIs de consulta por piso; ensaio sintético com 1 000, 5 000 e 10 000 equipamentos. |
 | Implementado no servidor local | Permissões por unidade e portal do cliente | Concessões por conta, filtragem no servidor e recusa de referências/ficheiros externos ao âmbito. |
 | Implementado | Percursos de assistência e entrega | Hoje, preparação guiada, tarefas com histórico, ficha móvel, conflitos e relatório personalizado; ver customer-workflows.md. |
+| Implementado no servidor local | Vários clientes por conta | Concessões por cliente e pedidos fixados ao contexto de cada separador, sem copiar projetos. |
+| Implementado | Manutenção, checklists e avisos internos | Ocorrências idempotentes, evidências obrigatórias e preferências por pessoa/cliente. |
+| Implementado | Consulta e intervenções offline | Descarga explícita, fila com fotografias, verificação de acesso e revisão de conflitos na sincronização. |
+| Implementado | Aceitação de entregas e importação guiada | Snapshots por versão, decisões do cliente, mapeamento/correção de colunas e revisão antes de importar. |
 | Pendente | SSO empresarial | Integrar fornecedor de identidade e provisionar memberships no alojamento; a gestão atual pertence ao servidor Node local. |
 | Pendente | Editor inteiramente carregado por piso | O editor completo conserva operações globais e lê o projeto em memória; a consulta paginada já funciona separadamente. |
 | Pendente | Carga multiutilizador e alojamento | Validar D1, histórico, anexos e concorrência com volumes e hardware de produção definidos. O benchmark atual usa SQLite em memória. |
