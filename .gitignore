@@ -4,3 +4,10 @@ dist/
 .env
 .env.local
 .atlas-local/
+test-results/
+playwright-report/
+
+!docs/test-results/
+docs/test-results/*
+!docs/test-results/assistant-evaluation.json
+!docs/test-results/inventory-benchmark.json

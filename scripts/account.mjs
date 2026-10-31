@@ -1,0 +1,6 @@
+import path from 'node:path';
+import {accountStore,passwordRecord,validateAccount} from './accounts.mjs';
+const [command,username,role='admin',organization='default']=process.argv.slice(2),store=accountStore(path.resolve(process.env.ATLAS_DATA_DIR||'.atlas-local'));
+if(command==='list'){console.log(JSON.stringify(store.read().map(({username,role,organization})=>({username,role,organization})),null,2));}
+else if(command==='set'){const account=validateAccount({username,role,organization}),password=process.env.ATLAS_ACCOUNT_PASSWORD;if(!password)throw Error('Defina ATLAS_ACCOUNT_PASSWORD para criar ou atualizar a conta.');const accounts=store.read(),index=accounts.findIndex(a=>a.username===username);account.password=passwordRecord(password);if(index<0)accounts.push(account);else accounts[index]=account;for(const org of new Set(accounts.map(a=>a.organization)))if(!accounts.some(a=>a.organization===org&&a.role==='admin'))throw Error('Cada organização precisa de um administrador.');store.write(accounts);console.log('Conta guardada. O servidor passa a exigir início de sessão; organização default mantém o projeto local existente.');}
+else throw Error('Uso: node scripts/account.mjs list | set UTILIZADOR admin|editor|reader [ORGANIZACAO]. Palavra-passe em ATLAS_ACCOUNT_PASSWORD (12+ caracteres).');

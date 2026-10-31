@@ -28,21 +28,45 @@ export function initWorkspaceShell(app){
  const menuBody=menu.lastElementChild;menuBody.append($('#mapTools'));menuBody.append($('.plan-layer-menu'));menuBody.append($('.plan-export-menu'));
  const secondary=document.createElement('div');secondary.className='secondary-views';secondary.innerHTML='<span>Vistas técnicas</span>';secondary.append($('#rackMode'),$('#logical'));menuBody.append(secondary);
  $('.map-views').append(menu);$('.map-views').append($('#expandMap'));
- const context=document.createElement('div');context.id='mapContext';context.innerHTML='<div><span id="mapContextPath"></span><strong id="mapContextName"></strong></div><div class="context-actions"><button id="contextAddRoom">＋ Sala</button><button id="contextEditRoom">Editar sala</button><button id="contextEquipment" class="primary">＋ Equipamento</button></div>';$('#mapWorkspace').prepend(context);
+ const context=document.createElement('div');context.id='mapContext';context.innerHTML='<div><nav id="mapContextPath" aria-label="Localização aberta"></nav><strong id="mapContextName"></strong></div><div class="context-actions"><button id="contextAddRoom">＋ Sala</button><button id="contextEditRoom">Editar sala</button><button id="contextEquipment" class="primary">＋ Equipamento</button></div>';$('#mapWorkspace').prepend(context);
  $('#contextAddRoom').onclick=()=>app.addRoom();$('#contextEditRoom').onclick=()=>app.editRoom();$('#contextEquipment').onclick=()=>app.edit('devices');
  // Lists belong below the canvas, not between navigation and the map.
  $('#mapWorkspace').after($('#roomWorkspace'));
  const report=document.createElement('details');report.id='projectSummary';report.innerHTML='<summary>Resumo do projeto</summary>';report.append($('.stats'));$('#projectMenu .dropdown-body').append(report);
+ const historyButton=document.createElement('button');historyButton.id='openProjectHistory';historyButton.textContent='Histórico de alterações';historyButton.onclick=()=>app.openTool('versions');$('#projectMenu .dropdown-body').prepend(historyButton);
  $('#workspaceSearch').classList.add('compact-search');$('#workspaceSubtitle').hidden=true;
  $('#navigationPanel h1').textContent='Navegação';$('#organiseSpaces').textContent='Gerir pisos e salas';$('#structureTools summary').textContent='Configuração avançada';
  // Search remains available globally without taking a full toolbar from the map.
  $('body>header').insertBefore($('#workspaceSearch'),$('.header-actions'));
- $('#addMenu summary').textContent='＋ Adicionar';$('#mapToolHint').hidden=true;
+ $('#addMenu summary').innerHTML='<span aria-hidden="true">＋</span> Adicionar <span aria-hidden="true">⌄</span>';$('#mapToolHint').hidden=true;
+ // A single toolbar: view, direct manipulation, create, and secondary actions.
+ const views=$('.map-views');views.hidden=true;
+ const toolbar=document.createElement('div');toolbar.className='map-toolbar';toolbar.setAttribute('role','group');toolbar.setAttribute('aria-label','Controlos do mapa');command.before(toolbar);
+ const viewPicker=document.createElement('details');viewPicker.id='mapViewPicker';viewPicker.className='dropdown';viewPicker.innerHTML='<summary><span data-current-view>Campus 3D</span><span aria-hidden="true">⌄</span></summary><div class="dropdown-body"></div>';
+ viewPicker.lastElementChild.append($('#physical'),$('#planMode'),$('#rackMode'),$('#logical'));toolbar.append(viewPicker);
+ const modes=$('.map-mode-buttons');toolbar.append(modes);
+ const symbols={navigate:'<path d="m5 3 13 8-6 1-3 6z"/>',move:'<path d="M10 2v16M2 10h16M7 5l3-3 3 3M7 15l3 3 3-3M5 7l-3 3 3 3M15 7l3 3-3 3"/>',connect:'<path d="m8 12 4-4M7 14l-1 1a3 3 0 0 1-4-4l4-4a3 3 0 0 1 4 0M13 6l1-1a3 3 0 0 1 4 4l-4 4a3 3 0 0 1-4 0"/>'};
+ for(const button of modes.querySelectorAll('button')){const label={navigate:'Navegar',move:'Mover',connect:'Ligar'}[button.dataset.mapAction];button.title=label;button.setAttribute('aria-label',label);button.innerHTML='<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+symbols[button.dataset.mapAction]+'</svg>';}
+ const spacer=document.createElement('span');spacer.className='map-toolbar-spacer';toolbar.append(spacer);
+ toolbar.append($('#addMenu'),$('.history-buttons'),$('#mapOptions'));
+ $('#mapOptions>summary').innerHTML='<span aria-hidden="true">···</span>';$('#mapOptions>summary').title='Mais opções';$('#mapOptions>summary').setAttribute('aria-label','Mais opções do mapa');
+ const extra=document.createElement('div');extra.className='map-extra-actions';extra.append($('#mapEditSelection'),$('#expandMap'),$('#finishMapAction'));menuBody.prepend(extra);secondary.remove();
+ menuBody.append($('.context-actions')); // Contextual actions remain available without another row of buttons.
+ $('#expandMap').textContent='Ampliar / recolher mapa';$('#mapEditSelection').textContent='Editar seleção';
+ $('.history-buttons').setAttribute('role','group');$('.history-buttons').setAttribute('aria-label','Histórico de alterações');
+ command.hidden=true;
+ const navigation=document.createElement('div');navigation.className='map-navigation-actions';navigation.innerHTML='<button type="button" id="mapShowAll">Mostrar tudo</button><button type="button" id="mapCentreSelection" title="Abrir a localização e centrar o objeto selecionado">Centrar seleção</button><button type="button" id="mapDuplicateRoom">Duplicar sala</button><button type="button" id="mapSaveRoomTemplate">Guardar modelo</button>';context.append(navigation);
+ $('#mapShowAll').onclick=()=>app.showAll();$('#mapCentreSelection').onclick=()=>app.centreSelection();$('#mapDuplicateRoom').onclick=()=>app.duplicateRoom();$('#mapSaveRoomTemplate').onclick=()=>app.saveRoomTemplate();
+ const useRoomTemplate=document.createElement('button');useRoomTemplate.id='useRoomTemplate';useRoomTemplate.textContent='A partir de um modelo de sala…';useRoomTemplate.onclick=()=>app.openTool('templates');$('#addMenu .dropdown-body').append(useRoomTemplate);
+ $('#mapContextPath').onclick=event=>{const button=event.target.closest('button');if(!button)return;if(button.hasAttribute('data-path-campus'))app.showAll();else if(button.dataset.pathSite)app.openSite(button.dataset.pathSite);else if(button.dataset.pathFloor)app.openFloor(button.dataset.pathFloor);};
+
+
  const refresh=()=>{const state=app.get(),p=state.project,f=p.floors.find(f=>f.id===state.floorId),r=p.rooms.find(r=>r.id===state.roomId),s=p.sites.find(s=>s.id===(f?.site||state.siteFilter));const expanded=new Set([...tree.querySelectorAll('details[open]')].map(d=>d.dataset.treeKey));tree.innerHTML=spaceTree(p,state,expanded);
- $('#mapContextPath').textContent=[s?.branch?.country,s?.branch?.unit,s?.name,f?.name].filter(Boolean).join(' / ')||'Todos os edifícios';$('#mapContextName').textContent=r?.name||f?.name||s?.name||'Campus';$('#contextAddRoom').hidden=!f||!!r;$('#contextEditRoom').hidden=!r;$('#contextEquipment').hidden=!r;$('#contextAddRoom').disabled=!state.ready;$('#contextEquipment').disabled=!state.ready;
+ $('[data-current-view]').textContent=({physical:'Campus 3D',plan:'Planta 2D',rack:'Bastidor 3D',logical:'Redes'})[state.mode]||'Vista';
+ $('#mapContextPath').innerHTML='<button type="button" data-path-campus>Todo o projeto</button>'+(s?'<span aria-hidden="true">/</span><button type="button" data-path-site="'+e(s.id)+'">'+e(s.name)+'</button>':'')+(f?'<span aria-hidden="true">/</span><button type="button" data-path-floor="'+e(f.id)+'">'+e(f.name)+'</button>':'')+(r?'<span aria-hidden="true">/</span><span aria-current="location">'+e(r.name)+'</span>':'');$('#mapDuplicateRoom').hidden=!r;$('#mapSaveRoomTemplate').hidden=!r;$('#mapSaveRoomTemplate').disabled=!state.ready;$('#mapDuplicateRoom').disabled=!state.ready;$('#mapCentreSelection').disabled=!p[state.selected.type]?.some(item=>item.id===state.selected.id);$('#mapContextName').textContent=r?.name||f?.name||s?.name||'Campus';$('#contextAddRoom').hidden=!f||!!r;$('#contextEditRoom').hidden=!r;$('#contextEquipment').hidden=!r;$('#contextAddRoom').disabled=!state.ready;$('#contextEquipment').disabled=!state.ready;
  $('#mapOptions').querySelector('.plan-layer-menu').hidden=state.mode!=='plan';$('#mapOptions').querySelector('.plan-export-menu').hidden=state.mode!=='plan';
  // Long undo descriptions belong in the accessible label, not a 34px button.
- for(const [id,label,icon] of [['undo','Desfazer','↶'],['redo','Refazer','↷']]){const button=$('#'+id),description=button.textContent;button.title=description;button.setAttribute('aria-label',description);button.textContent=icon+' '+label;}
+ for(const [id,label,icon] of [['undo','Desfazer','↶'],['redo','Refazer','↷']]){const button=$('#'+id),description=button.textContent;button.title=description;button.setAttribute('aria-label',description);button.textContent=icon;}
  };
  return {refresh};
 }

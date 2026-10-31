@@ -1,0 +1,425 @@
+{
+  "date": "2026-10-31T18:05:27.379Z",
+  "model": "qwen3:14b",
+  "knowledgeVersion": "2026-10-31.1",
+  "environment": {
+    "node": "v22.23.3",
+    "platform": "linux",
+    "release": "6.6.87.2-microsoft-standard-WSL2",
+    "cpu": "AMD Ryzen 7 7800X3D 8-Core Processor"
+  },
+  "scope": "Projetos sintéticos em memória; sem gravação na instalação. Critérios automáticos não medem toda a qualidade das respostas.",
+  "cases": [
+    {
+      "id": "project-count",
+      "engine": "project",
+      "latencyMs": 1,
+      "checks": {
+        "answered": true,
+        "readOnly": true,
+        "unchanged": true,
+        "terms": true,
+        "intent": true
+      },
+      "passed": true
+    },
+    {
+      "id": "room-count",
+      "engine": "project",
+      "latencyMs": 1,
+      "checks": {
+        "answered": true,
+        "readOnly": true,
+        "unchanged": true,
+        "terms": true,
+        "intent": true
+      },
+      "passed": true
+    },
+    {
+      "id": "room-missing",
+      "engine": "project",
+      "latencyMs": 0,
+      "checks": {
+        "answered": true,
+        "readOnly": true,
+        "unchanged": true,
+        "terms": true,
+        "intent": true
+      },
+      "passed": true
+    },
+    {
+      "id": "find-serial",
+      "engine": "project",
+      "latencyMs": 1,
+      "checks": {
+        "answered": true,
+        "readOnly": true,
+        "unchanged": true,
+        "terms": true,
+        "intent": true,
+        "target": true
+      },
+      "passed": true
+    },
+    {
+      "id": "find-ip",
+      "engine": "project",
+      "latencyMs": 0,
+      "checks": {
+        "answered": true,
+        "readOnly": true,
+        "unchanged": true,
+        "terms": true,
+        "intent": true,
+        "target": true
+      },
+      "passed": true
+    },
+    {
+      "id": "find-missing",
+      "engine": "project",
+      "latencyMs": 0,
+      "checks": {
+        "answered": true,
+        "readOnly": true,
+        "unchanged": true,
+        "terms": true,
+        "intent": true
+      },
+      "passed": true
+    },
+    {
+      "id": "maintenance-overdue",
+      "engine": "project",
+      "latencyMs": 11,
+      "checks": {
+        "answered": true,
+        "readOnly": true,
+        "unchanged": true,
+        "terms": true,
+        "intent": true,
+        "target": true
+      },
+      "passed": true
+    },
+    {
+      "id": "selected-summary",
+      "engine": "project",
+      "latencyMs": 0,
+      "checks": {
+        "answered": true,
+        "readOnly": true,
+        "unchanged": true,
+        "terms": true,
+        "intent": true,
+        "target": true
+      },
+      "passed": true
+    },
+    {
+      "id": "pending-documentation",
+      "engine": "project",
+      "latencyMs": 1,
+      "checks": {
+        "answered": true,
+        "readOnly": true,
+        "unchanged": true,
+        "terms": true,
+        "intent": true
+      },
+      "passed": true
+    },
+    {
+      "id": "equip-room-bulk",
+      "engine": "local-command",
+      "latencyMs": 16,
+      "checks": {
+        "recognized": true,
+        "mode": true,
+        "result": true,
+        "unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "id": "room-vlan-bulk",
+      "engine": "local-command",
+      "latencyMs": 4,
+      "checks": {
+        "recognized": true,
+        "mode": true,
+        "result": true,
+        "unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "id": "save-room-model",
+      "engine": "local-command",
+      "latencyMs": 3,
+      "checks": {
+        "recognized": true,
+        "mode": true,
+        "result": true,
+        "unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "id": "new-vlan-reference",
+      "engine": "local-command",
+      "latencyMs": 8,
+      "checks": {
+        "recognized": true,
+        "mode": true,
+        "result": true,
+        "unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "id": "configure-owner",
+      "engine": "local-command",
+      "latencyMs": 4,
+      "checks": {
+        "recognized": true,
+        "mode": true,
+        "result": true,
+        "unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "id": "configure-ip",
+      "engine": "local-command",
+      "latencyMs": 1,
+      "checks": {
+        "recognized": true,
+        "mode": true,
+        "result": true,
+        "unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "id": "configure-review",
+      "engine": "local-command",
+      "latencyMs": 2,
+      "checks": {
+        "recognized": true,
+        "mode": true,
+        "result": true,
+        "unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "id": "configure-intervention",
+      "engine": "local-command",
+      "latencyMs": 1,
+      "checks": {
+        "recognized": true,
+        "mode": true,
+        "result": true,
+        "unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "id": "insert-switch",
+      "engine": "local-command",
+      "latencyMs": 3,
+      "checks": {
+        "recognized": true,
+        "mode": true,
+        "result": true,
+        "unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "id": "insert-rack",
+      "engine": "local-command",
+      "latencyMs": 8,
+      "checks": {
+        "recognized": true,
+        "mode": true,
+        "result": true,
+        "unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "id": "insert-vm",
+      "engine": "local-command",
+      "latencyMs": 3,
+      "checks": {
+        "recognized": true,
+        "mode": true,
+        "result": true,
+        "unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "id": "configure-invalid-batch",
+      "engine": "local-command",
+      "latencyMs": 1,
+      "checks": {
+        "recognized": true,
+        "mode": true,
+        "result": true,
+        "unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "id": "complete-office-20",
+      "engine": "local-command",
+      "latencyMs": 33,
+      "checks": {
+        "computers": true,
+        "printer": true,
+        "outlets": true,
+        "rack": true,
+        "cabling": true,
+        "verified": true,
+        "honest": true,
+        "unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "id": "complete-office-repeat",
+      "engine": "local-command",
+      "checks": {
+        "noChanges": true,
+        "sameProject": true
+      },
+      "passed": true
+    },
+    {
+      "id": "bulk-addressing",
+      "engine": "local-command",
+      "latencyMs": 6,
+      "checks": {
+        "result": true,
+        "unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "id": "repair-patch-channel",
+      "engine": "local-command",
+      "latencyMs": 9,
+      "checks": {
+        "result": true,
+        "unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "id": "staged-branch-40",
+      "engine": "local-task",
+      "latencyMs": 120,
+      "checks": {
+        "completed": true,
+        "floors": true,
+        "departments": true,
+        "computers": true,
+        "saved": true
+      },
+      "passed": true
+    },
+    {
+      "id": "help-no-mutation",
+      "engine": "documentation",
+      "prompt": "Como criar um edifício no Atlas?",
+      "status": 200,
+      "latencyMs": 2,
+      "response": {
+        "reply": "Criar edifícios, pisos e salas\n1. Usa + Edifício e indica o nome, pisos e salas.\n2. Confirma as quantidades antes de criar. Equipamentos e cabos são adicionados separadamente.\n3. Navega pelo caminho edifício → piso → sala.\nUma estrutura de espaços navegável.\nSe não houver espaço livre, ajusta as medidas ou a disposição. Desbloqueia o espaço antes de o mover.",
+        "mode": "advice",
+        "source": "documentation",
+        "sources": [
+          {
+            "id": "spaces",
+            "title": "Criar edifícios, pisos e salas"
+          }
+        ],
+        "knowledgeVersion": "2026-10-31.1",
+        "latencyMs": 2
+      },
+      "checks": {
+        "http": true,
+        "mode": true,
+        "noActions": true,
+        "documentation": true
+      },
+      "passed": true
+    },
+    {
+      "id": "backup-keys",
+      "engine": "documentation",
+      "prompt": "Como guardar um backup e restaurar noutra instalação?",
+      "status": 200,
+      "latencyMs": 0,
+      "response": {
+        "reply": "Exportar e restaurar um backup\n1. Abre Projeto → Exportar cifrado e guarda o ficheiro .atlasenc.\n2. Para restaurar, usa Projeto → Importar projeto, escolhe o ficheiro e revê a substituição.\n3. Para conservar toda a instalação local, copia a pasta de dados incluindo as chaves; com Docker, conserva o volume atlas-data.\nBackup protegido do projeto ou projeto importado.\nOs backups dependem da identidade, instalação e chaves originais. Um ficheiro não é automaticamente portável entre instalações. Se a importação falhar, preserva o ficheiro e as chaves originais. Anexos e imagens exigem também a cópia da instalação.",
+        "mode": "advice",
+        "source": "documentation",
+        "sources": [
+          {
+            "id": "backups",
+            "title": "Exportar e restaurar um backup"
+          }
+        ],
+        "knowledgeVersion": "2026-10-31.1",
+        "latencyMs": 0
+      },
+      "checks": {
+        "http": true,
+        "mode": true,
+        "noActions": true,
+        "documentation": true
+      },
+      "passed": true
+    },
+    {
+      "id": "create-building",
+      "engine": "validated-command",
+      "prompt": "Cria um edifício chamado Sede sem pisos nem salas.",
+      "status": 200,
+      "latencyMs": 1,
+      "response": {
+        "reply": "",
+        "actions": [
+          {
+            "action": "create_building",
+            "ref": "new_site",
+            "name": "Sede"
+          }
+        ],
+        "mode": "configure",
+        "source": "validated-command",
+        "sources": [],
+        "latencyMs": 1
+      },
+      "checks": {
+        "http": true,
+        "mode": true,
+        "actions": true,
+        "result": true
+      },
+      "passed": true
+    }
+  ],
+  "modelEvaluation": {
+    "status": "skipped",
+    "reason": "Usa --with-model para avaliar também a inferência real do Ollama."
+  },
+  "status": "completed",
+  "passed": true
+}

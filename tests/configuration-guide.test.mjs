@@ -6,12 +6,12 @@ const spaces={...empty,sites:[{id:'s',branch:{country:'PT',unit:'Sede'}}],floors
 const device=(id)=>({id,name:id,site:'s',room:'r',type:'Computador',record:{owner:'Ana'}});
 const next=p=>configurationSteps(p).find(s=>!s.done)?.id;
 test('journey starts with spaces and gates equipment on a valid room',()=>{
- assert.deepEqual(configurationSteps(empty).map(s=>s.id),['spaces','equipment','connections','check']);
- assert.equal(next(empty),'spaces');
- assert.equal(configurationSteps({...empty,sites:[{id:'s'}]} )[1].enabled,false);
- assert.equal(configurationSteps(spaces)[1].enabled,true);
+ assert.deepEqual(configurationSteps(empty).map(s=>s.id),['building','floor','room','equipment','connections','check']);
+ assert.equal(next(empty),'building');
+ assert.equal(configurationSteps({...empty,sites:[{id:'s'}]} )[3].enabled,false);
+ assert.equal(configurationSteps(spaces)[3].enabled,true);
  assert.equal(next(spaces),'equipment');
- assert.equal(configurationSteps({...spaces,floors:[]})[0].done,false);
+ assert.equal(configurationSteps({...spaces,floors:[]})[1].done,false);
 });
 test('journey advances through equipment, connections and remaining records',()=>{
  const equipped={...spaces,devices:[device('a'),{...device('b'),record:{}}]};
@@ -26,4 +26,9 @@ test('proposals and unidentified ports prevent premature connection completion',
  assert.equal(next({...linked,devices:[{...device('a'),pendingNetworkPorts:['P2']},device('b')]}),'connections');
  assert.equal(next({...linked,nets:[{id:1}]}),next(linked));
  assert.equal(next({...linked,links:[] }),'connections');
+});
+
+test('guide separates building, floor and room creation with dependency gates',()=>{
+ const building={...empty,sites:[{id:'s'}]};assert.equal(next(building),'floor');assert.equal(configurationSteps(building)[1].enabled,true);assert.equal(configurationSteps(building)[2].enabled,false);
+ const floor={...building,floors:[{id:'f',site:'s'}]};assert.equal(next(floor),'room');assert.equal(configurationSteps(floor)[2].enabled,true);assert.equal(configurationSteps(floor)[3].enabled,false);
 });

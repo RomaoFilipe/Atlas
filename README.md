@@ -1,5 +1,13 @@
 <div align="center">
 
+Atualização de 31/10/2026: VLANs com planos por domínio, contas locais com
+administrador/editor/leitor, auditoria por utilizador, armazenamento por entidade
+e inventário paginado em `/inventory.html`. Abra `/account` para ativar contas.
+Limites, migração, APIs e configuração: [Empresa e organizações](docs/organization.md).
+O editor completo mantém carregamento integral; a nova consulta de plantas
+carrega equipamentos por piso. SSO e permissões por unidade continuam pendentes.
+
+
 # ATLAS
 
 ### See your infrastructure. Understand every connection.
@@ -54,7 +62,7 @@ O modo local continua a usar um projeto partilhado sem permissões por equipa.
 
 ## Planta técnica de rede
 
-A aplicação abre na planta do piso, com as ligações de dados visíveis. A biblioteca
+Na planta do piso, pode consultar as ligações de dados. A biblioteca
 permite colocar equipamentos nas salas. As tomadas apresentam as portas F1/F2:
 clique para criar uma ligação numa saída livre ou consultar o cabo de uma saída ocupada.
 O painel abaixo da planta reúne equipamentos de rede, portas e cablagem do piso.
@@ -76,7 +84,12 @@ O volume `atlas-data` conserva projetos, versões, anexos e chaves entre arranqu
 Para parar, use Ctrl+C; para voltar a iniciar, repita o comando. Não elimine o volume
 se quiser conservar os dados e conseguir abrir os backups antigos.
 
-**Assistente de planta com Ollama no Docker:** inicie a aplicação e o serviço local de IA com `docker compose --profile ai up --build -d`. Descarregue um modelo gratuito, por exemplo `docker compose exec ollama ollama pull qwen2.5:3b`, e abra uma sala na planta 2D. O botão **Pedir ajuda à IA para organizar** permite descrever a disposição pretendida; reveja as posições e aplique apenas as que o Atlas validar. O primeiro descarregamento do modelo requer Internet e espaço em disco. Os dados da planta são enviados apenas ao Ollama local. Sem o perfil `ai`, a aplicação continua a funcionar sem o assistente.
+**Assistente com Ollama no Docker:** execute `docker compose up --build -d`.
+O serviço `ollama-init` instala automaticamente o modelo configurado, `qwen3:14b`
+por predefinição; o Atlas aguarda a instalação antes de arrancar. Abra **Falar com
+a IA** para conversar ou pedir configurações documentais. O primeiro download
+requer Internet e espaço em disco. Pode consultar os **Guias de configuração**
+no chat mesmo quando o modelo está indisponível.
 
 **Sem Docker:** com Node.js **22.13 ou superior**, basta executar `npm start`.
 Não é necessário instalar dependências para este arranque. Os dados ficam em `.atlas-local/`. Para ativar a IA neste modo, instale e inicie o Ollama no mesmo computador e descarregue um modelo; o Atlas procura o serviço em `http://127.0.0.1:11434` por predefinição. Pode definir outro endereço com `ATLAS_OLLAMA_URL`.
@@ -84,11 +97,11 @@ Pode mudar a porta com `PORT=3001 npm start` e a pasta com `ATLAS_DATA_DIR=/cami
 Copie toda a pasta de dados, incluindo as chaves, para conservar uma instalação local.
 Os dados do Docker e do arranque direto são independentes.
 
-Este é um modo para uma pessoa, sem login. No Raspberry Pi, o Docker também permite
-acesso por Wi-Fi em **http://192.168.1.103:3000**. Todos os dispositivos com acesso
-a esta porta usam o mesmo projeto. Se o IP mudar, configure `ATLAS_ALLOWED_HOSTS`
-no ficheiro `.env` (endereços separados por vírgulas, sem porta) e reinicie o Compose.
-O arranque direto com `npm start` continua limitado a localhost por predefinição.
+Este é um modo para uma pessoa, sem login. O Docker publica a aplicação apenas
+em **http://localhost:3000** por predefinição. O arranque direto com `npm start`
+também está limitado a localhost por predefinição. A publicação na rede exige
+configuração explícita; `ATLAS_ALLOWED_HOSTS` valida hosts, mas não autentica
+utilizadores. Para acesso remoto, use um proxy com autenticação e TLS.
 A identidade local é fixa; backups da instalação Sites continuam associados à conta original.
 Para utilização partilhada, mantenha o alojamento com autenticação descrito abaixo.
 
@@ -251,7 +264,7 @@ The hosting configuration and encrypted-backup domain contain the current Site i
 | `.env.example` | Export keyring placeholder; not a working secret. |
 | `.openai/hosting.json` | Existing Sites deployment configuration. |
 
-Project documents use schema **version 3**. D1 stores projects and named versions by owner; R2 stores imported floor-plan assets. Revision checks detect conflicting saves rather than silently overwriting a newer project.
+Project documents use schema **version 3**. D1 stores workspace metadata, indexed entities and named versions by owner; R2 stores imported floor-plan assets. Revision checks detect conflicting saves rather than silently overwriting a newer project.
 
 <a id="en-security"></a>
 
@@ -270,7 +283,7 @@ Encryption is performed on the server. This is **not end-to-end or zero-knowledg
 
 ### Scope, contributions and licensing
 
-Atlas currently provides per-user projects and documentation tools. Team workspaces, shared editing, billing, live monitoring and automated discovery are not included. Inventory exports may support internal documentation processes, but the application does not claim compliance certification.
+Atlas currently provides per-user projects and documentation tools. The local Node server supports organization accounts and shared projects with revision conflicts; SSO, real-time shared editing, billing, live monitoring and automated discovery are not included. Inventory exports may support internal documentation processes, but the application does not claim compliance certification.
 
 For a bug report, include the affected view, reproduction steps, expected behaviour and a sanitised example when possible. Never attach real credentials, export keys or sensitive infrastructure records to a public issue.
 
@@ -512,3 +525,338 @@ O resumo distingue saídas de tomada livres, portas livres de mini-switch (exclu
 **English:** Map tools are grouped into View and Protection. Centre the selection, isolate its location, fit the current view or return to the full Campus 3D. Lock a selected object, lock the current floor or manage building/floor/room locks together. A parent lock protects the positions of its contents, including moves made through forms. Unlock the parent to move a child. Records and cable editing remain available. Existing rack locks are respected. Locks are saved in the project and can be undone; they prevent accidental layout edits and are not access-control permissions.
 
 **Português:** As ferramentas do mapa estão agrupadas em Vista e Proteção. Pode centrar a seleção, isolar a localização, enquadrar a vista ou regressar ao Campus 3D completo. Bloqueie o objeto selecionado, tranque o piso atual ou gira os bloqueios de edifícios, pisos e salas num único painel. O bloqueio de um espaço protege a posição dos seus objetos, mesmo em alterações por formulário. Para mover um objeto, desbloqueie o espaço que o protege. As fichas e os cabos continuam editáveis. Os bloqueios existentes de bastidores são respeitados. Os bloqueios ficam guardados no projeto e podem ser desfeitos; protegem contra alterações acidentais da disposição e não substituem permissões de acesso.
+
+### Chat local para ajudar na configuração
+
+O painel «Falar com a IA» usa o modelo local configurado (Qwen3 14B por defeito) e
+permite escrever perguntas, usar sugestões e iniciar uma nova conversa. O histórico fica apenas na memória da página;
+não é guardado no projeto. O chat recebe apenas um contexto estrutural anónimo. No modo «Configurar por mim»,
+o Atlas executa ações documentais validadas; não existem comandos de sistema,
+acesso a ficheiros, contas ou operações privilegiadas.
+
+```sh
+docker compose up -d --build
+# O serviço ollama-init instala automaticamente o Qwen3 14B.
+```
+
+Abre `http://localhost:3000` e abre «Falar com a IA». A ligação é automática. O primeiro download
+requer Internet e espaço para o modelo. O Ollama não publica portas no anfitrião;
+o Atlas publica apenas em loopback por defeito. Para acesso remoto, usa um proxy
+com autenticação e TLS; este runtime continua a ser de utilizador único e a lista
+de hosts permitidos não autentica pessoas.
+
+O servidor filtra padrões comuns de IPv4, IPv6, emails, URLs, tokens e credenciais
+rotuladas antes de enviar mensagens e antes de devolver respostas. O assistente de
+planta envia apenas campos de geometria permitidos, com nomes genéricos. Estes
+filtros não garantem deteção de segredos arbitrários, codificados ou ofuscados:
+não introduzas dados sensíveis no chat. As ações disponíveis pertencem a uma lista explícita e são validadas antes de
+serem aplicadas. Não há execução de código nem acesso a equipamentos reais.
+A integração usa a [API oficial de chat do Ollama](https://docs.ollama.com/api/chat).
+
+### Navegação e edição na planta
+
+- **Mostrar tudo** limpa filtros e sai da sala/piso aberto para enquadrar o projeto.
+- **Centrar seleção** abre a localização do equipamento e aproxima a vista.
+- O caminho acima do mapa permite regressar ao projeto, edifício ou piso.
+- **Configurar o projeto** apresenta as etapas Edifício → Piso → Sala → Equipamentos
+  → Ligações → Rever e indica o próximo passo disponível.
+- Numa sala, **Duplicar sala** cria uma cópia num espaço livre do mesmo piso,
+  mantendo a disposição relativa dos equipamentos e bastidores. Remove IPs e
+  registos pessoais; os cabos internos tornam-se propostas para revisão. Se não
+  houver espaço, é necessário ajustar as salas ou aumentar o edifício.
+- Na **Planta 2D**, centra um equipamento para abrir a planta de posições. Usa
+  **Selecionar vários**, desenha uma caixa ou faz Shift+clique nos equipamentos.
+  Conclui a seleção para arrastar um dos selecionados e mover o grupo. Também podes
+  usar as setas do painel com passos de 10 cm, 50 cm ou 1 m. Os bloqueios e limites
+  das salas são respeitados. **Desfazer** anula cada operação completa.
+
+### Seguir cabos, recuperar estados e pesquisar diretamente
+
+Ao selecionar uma **tomada de rede**, o painel de percurso destaca a saída A.
+Escolhe outra saída para seguir o seu canal independente. O percurso começa na
+traseira da tomada, atravessa o canal correspondente dos painéis e continua pela
+porta principal dos mini-switches até encontrar um switch. Mostra os cabos por
+ordem, as portas em cada extremo e o ponto onde falta documentar a continuação.
+Não atravessa equipamentos ativos nem mistura saídas vizinhas, energia ou
+ligações virtuais. **Limpar destaque** repõe a vista normal.
+
+Em **Projeto → Histórico de alterações**, consulta as últimas 100 gravações
+anteriores do projeto ou as versões nomeadas. **Ver alterações** compara um estado
+com o atual; **Recuperar** apresenta primeiro as diferenças que serão aplicadas.
+O estado atual é preservado numa versão nomeada antes da recuperação. Os registos
+automáticos são privados por utilizador e começam após esta atualização; cada
+registo corresponde a uma gravação concluída, podendo agrupar várias ações rápidas.
+As versões nomeadas mantêm o limite de 200 e não são eliminadas pela retenção do
+histórico automático. A migração SQL é aplicada automaticamente ao iniciar o
+runtime local/Docker.
+
+A pesquisa global apresenta até oito atalhos com nome e localização. Clica num
+resultado ou usa ↑/↓ e Enter para abrir e centrar o equipamento. Equipamentos
+instalados abrem o respetivo bastidor; os restantes abrem a localização no mapa.
+**Ver todos no inventário** mantém a pesquisa para consultar a lista completa.
+
+### Modelos de salas e pendências no mapa
+
+Abre uma sala e usa **Guardar modelo**. Para reutilizar, escolhe **Adicionar → A
+partir de um modelo de sala…**, seleciona o modelo, o piso de destino e o nome da
+nova sala. A colocação procura espaço livre e respeita os bloqueios do destino.
+As medidas, equipamentos, bastidores e disposição relativa são preservados. Os
+modelos de sala não incluem IPs, gateways, VLANs, responsáveis, fichas, anexos ou
+histórico. Os cabos internos tornam-se propostas; portas externas ficam por
+identificar. A operação pode ser anulada e os modelos ficam guardados no projeto.
+
+**Pendências no mapa** mostra equipamentos em serviço sem ligação documentada,
+portas por identificar e possíveis sobreposições entre objetos físicos no mesmo
+piso e altura. As portas de tomadas apenas livres não são tratadas como falhas.
+Os indicadores `!` aparecem em 2D e 3D; podem ser ocultados. Usa **Centrar**,
+**Configurar ligação** ou **Reposicionar** para abrir a ação correspondente. A
+lista respeita o edifício, piso e sala abertos e apresenta 15 itens por página.
+Estas indicações verificam os registos do projeto, não a infraestrutura real.
+
+A planta mantém o SVG nas atualizações sem alterações visuais. A vista 3D evita
+reconstruções idênticas, deixa de desenhar quando está oculta ou parada sem fluxo
+animado e usa formas simplificadas quando há mais de 120 equipamentos visíveis.
+O objeto selecionado e os equipamentos do percurso mantêm o detalhe completo;
+os bastidores mantêm sempre o detalhe. Os diagnósticos são reutilizados enquanto
+o projeto não muda e a deteção de sobreposições calcula cada área uma única vez.
+
+Para medir o cálculo de diagnósticos com 450 equipamentos neste computador:
+
+```sh
+npm run bench:map
+```
+
+### IA que configura o projeto
+
+No chat, o modo **Configurar por mim** interpreta o pedido, valida todas as ações e
+aplica-as automaticamente numa única operação com **Desfazer**. O modo **Só
+conversar** responde sem alterar o projeto. Exemplos:
+
+- «Cria um edifício chamado Sede com um piso e uma sala de 10 por 8 metros.»
+- «Adiciona três computadores à sala atual.»
+- «Liga à rede os equipamentos da sala atual usando as portas livres.»
+- «Cria a VLAN 30 com o nome Utilizadores.»
+
+Pode criar edifícios, pisos, salas, equipamentos e VLANs; renomear elementos; mover
+equipamentos livres dentro da sala; atribuir VLANs; registar cabos de dados e aplicar
+modelos de salas. Os cabos são registos documentais: não há alterações na rede real.
+Os cabos de uma sala usam os canais e portas livres que o Atlas consegue identificar.
+Portas reservadas por propostas não são reutilizadas automaticamente.
+
+O modelo recebe referências anónimas, dimensões, tipos e disponibilidade de portas.
+O browser associa essas referências aos objetos reais. Nomes existentes escritos
+no pedido são substituídos localmente por referências quando são inequívocos. Não
+são enviados IPs, gateways, sub-redes, contas, fichas, responsáveis, anexos ou histórico
+do projeto. A filtragem de texto continua sujeita às limitações indicadas acima.
+
+As respostas usam o [esquema estruturado do Ollama](https://docs.ollama.com/capabilities/structured-outputs).
+O executor aceita apenas as ações previstas: não apaga elementos, não altera
+bloqueios ou credenciais, e não executa código, comandos, ficheiros ou acessos
+privilegiados. IPs e dados de ficha só são aplicados a partir de comandos locais
+explícitos; o modelo não pode inventar esses valores. Uma ação inválida, falta de espaço, conflito, porta ocupada ou mudança
+do projeto durante a resposta impede a aplicação de todo o lote. Máximo de 12 ações
+e 50 equipamentos novos por pedido. A gravação usa a persistência e o histórico
+normais do Atlas; o chat distingue uma configuração guardada de gravação pendente.
+
+O modelo está fixado em **Qwen3 14B** (`qwen3:14b`). O serviço Docker `ollama-init`
+instala-o no volume persistente do Ollama; o Atlas aguarda a conclusão antes de
+arrancar. O assistente não muda silenciosamente para um modelo menor. Para escolher
+outro modelo, define `ATLAS_OLLAMA_MODEL` no ambiente/Compose e reinicia os serviços.
+Não são mostrados controlos de modelo ou ligação no chat. A primeira resposta pode
+demorar durante o carregamento; em máquinas sem GPU, a latência depende do modelo
+e do processador; o pedido de configuração tem um limite de cinco minutos.
+
+### Ajuda rápida e revisão de alterações
+
+O chat começa em **Só conversar**. As perguntas cobertas pelos guias recebem uma
+**Resposta imediata · guia do Atlas**, sem aguardar o Ollama. Em **Configurar por
+mim**, alguns comandos exatos também dispensam o modelo, mantendo as validações
+do editor e a opção Desfazer. Pedidos livres continuam a usar o Qwen3 configurado;
+não foi efetuado fine-tuning. As fontes da ajuda podem ser abertas no próprio chat.
+
+Em **Equipamentos → Importar Excel / CSV**, a operação **Adicionar e atualizar por
+ID / série** revê novos, alterados e registos sem alterações. Colunas ausentes são
+preservadas; valores explicitamente vazios podem limpar campos. Cada cabo afetado
+por uma mudança de sala exige uma decisão. Alterações de tipo, quantidade de portas
+e montagem em U devem ser feitas na ficha.
+
+Em **Projeto → Auditoria de alterações**, consulta os registos por entidade e revisão.
+A auditoria começa após as migrações 0003/0004; não reconstrói alterações anteriores.
+No modo local, o autor é a identidade partilhada. Os triggers impedem editar ou
+eliminar eventos, mas não protegem contra um administrador da base de dados.
+
+Validação adicional: `npm run test:browser` executa percursos Chromium numa instalação
+temporária. `npm run eval:assistant` avalia consultas, guias e comandos diretos;
+`npm run eval:assistant -- --with-model` acrescenta inferência real. Resultados em `docs/test-results/assistant-evaluation.json`.
+
+### Pesquisa, manutenção e comparação visual
+
+A pesquisa superior encontra equipamentos por nome, IP e número de série; Enter
+abre o resultado no mapa ou bastidor. Na ficha, registe intervenções, **Próxima
+revisão** e **Substituição prevista**. As pendências incluem revisões vencidas ou
+nos próximos 30 dias e substituições vencidas ou nos próximos 90 dias, excluindo
+os equipamentos abatidos. As datas são documentais; não são enviadas notificações.
+
+No inspetor, **Simular falha deste equipamento/cabo** prepara a seleção; escolha
+o destino de referência e execute **Simular** para destacar o impacto no mapa.
+Em **Documentação → Histórico → Ver alterações**, o diagrama distingue adições,
+remoções e alterações de equipamentos e cabos. A disposição é esquemática.
+
+O **Dossier técnico → Imprimir / PDF** inclui plantas, bastidores, inventário,
+cabos, verificação e manutenção; escolha guardar como PDF no navegador.
+No telemóvel, leia uma etiqueta QR com a câmara do sistema para abrir a ficha,
+consultar portas e ligações e editar registos. O endereço da etiqueta deve ser
+acessível ao telemóvel; a ficha apresenta controlos adaptados a ecrãs pequenos.
+
+### Consultar o projeto no chat
+
+O assistente responde a estas consultas a partir dos dados atuais, no próprio
+browser, sem enviar o inventário ao modelo e sem alterar o projeto:
+
+- «Quantos switches existem?» ou «Quantos equipamentos há nesta sala?»
+- «Onde está POSTO-01?» (também aceita IP ou número de série).
+- «Resume o equipamento selecionado.»
+- «O que falta documentar nesta sala?»
+- «Que manutenções estão pendentes?» ou «Quais revisões estão vencidas?»
+
+Os resultados incluem botões para abrir os equipamentos. Os âmbitos sala, piso e
+edifício exigem a localização aberta ou selecionada; uma localização em falta não
+é substituída silenciosamente pelo projeto inteiro. As consultas mostram os
+registos documentais, sem afirmar disponibilidade real na rede. As respostas
+locais não são acrescentadas ao histórico enviado ao modelo.
+
+`npm run eval:assistant` avalia consultas, ajuda e comandos diretos sem Ollama.
+`npm run eval:assistant -- --with-model` acrescenta casos de inferência real no
+modelo configurado; a disponibilidade e os resultados do modelo são registados
+separadamente. O relatório usa projetos sintéticos e fica em
+`docs/test-results/assistant-evaluation.json`. O CI executa a avaliação sem modelo.
+
+### Inserir e configurar pelo chat
+
+Em **Configurar por mim**, abre **O que posso inserir e configurar** e escolhe um
+exemplo. Os comandos diretos funcionam também no site sem ligação ao Ollama.
+Exemplos (adapta nomes e datas):
+
+```text
+Cria um edifício chamado "Sede" com um piso chamado "Piso 0" e uma sala chamada "Escritório" de 10 por 8 metros.
+Adiciona 1 switch chamado "SW-01" com 24 portas na sala atual.
+Cria um bastidor chamado "RACK-01" de 24 U na sala atual.
+Define o responsável do equipamento selecionado como "Equipa TI".
+Define o estado do equipamento selecionado como "Em manutenção".
+Agenda a próxima revisão do equipamento selecionado para 2026-12-01.
+Regista uma intervenção no equipamento selecionado com o título "Revisão preventiva" na data 2026-10-29.
+Define o IP do equipamento selecionado como 192.0.2.10.
+Define o gateway do equipamento selecionado como 192.0.2.1.
+Atribui a VLAN 30 ao equipamento selecionado.
+Define a sub-rede da VLAN 30 como 192.0.2.0/24.
+Configura o equipamento selecionado com 24 portas.
+Cria uma VM chamada "VM-01" no servidor selecionado.
+Instala o equipamento selecionado no bastidor "RACK-01" na U 4.
+Liga a alimentação do equipamento selecionado à PDU "PDU-01" na tomada 1.
+```
+
+Pode indicar o nome exato entre aspas em vez de «equipamento selecionado».
+Para executar vários comandos sobre elementos existentes, separa-os por ponto e
+vírgula; todo o lote é validado antes de aplicar e tem uma única ação de Desfazer.
+Os comandos podem referir pelo nome espaços, equipamentos, VLANs e modelos
+criados nos passos anteriores do mesmo pedido. Quantidades com vários equipamentos
+continuam a exigir referências inequívocas para ações posteriores.
+Nomes ambíguos exigem selecionar o elemento. Reduzir portas ligadas ou reservadas
+por propostas, datas inválidas e IPs repetidos impede a aplicação de todo o lote.
+Em Só conversar, um comando reconhecido fica na caixa de texto e o chat indica
+como mudar para Configurar por mim; não é executado nesse modo.
+
+IPs, gateways, dados de ficha e intervenções são tratados no browser e não entram
+no histórico enviado ao modelo. VMs, portas, cablagem e alimentação são registos
+do projeto. A gravação, auditoria e recuperação usam os mecanismos normais do Atlas.
+
+### Qwen3 14B e tarefas de várias etapas
+
+O modelo por predefinição é **qwen3:14b**, no chat e no assistente de organização
+da planta. No arranque direto, instala-o com `ollama pull qwen3:14b` e inicia
+`npm start`; no Docker, `ollama-init` instala o modelo configurado automaticamente.
+A configuração não muda silenciosamente para um modelo menor. Pedidos livres
+podem demorar em CPU; o chat permite até cinco minutos por pedido ao modelo.
+
+Em Configurar por mim, também podes usar:
+
+```text
+Equipa a sala atual com 4 postos de trabalho, 4 telefones IP, 1 impressora e 4 tomadas de rede.
+Atribui a VLAN 30 a todos os equipamentos da sala atual.
+Instala os equipamentos livres da sala atual no bastidor "RACK-01".
+Alimenta os equipamentos ativos do bastidor "RACK-01" usando a PDU "PDU-01".
+Guarda a sala atual como modelo chamado "Escritório padrão".
+Duplica a sala atual com o nome "Novo escritório".
+```
+
+A montagem escolhe U livres para equipamentos compatíveis da mesma sala. A
+alimentação do bastidor usa uma PDU nele instalada, preserva cabos existentes e
+inclui switches, firewalls, servidores e armazenamento sem alimentação registada.
+Equipar uma sala acrescenta apenas as quantidades pedidas; não cria IPs nem
+infraestrutura implícita. A cópia de sala/modelo não inclui fichas ou IPs, e os cabos
+copiados ficam como propostas. Todos os passos partilham validação e Desfazer.
+Os limites continuam a ser 12 ações e 50 equipamentos novos por pedido.
+
+**Local e alojado:** o Ollama instalado neste computador serve o Atlas local. A
+publicação no Sites não cria uma ligação ao computador. Os comandos diretos
+funcionam no site sem modelo; pedidos livres ao Qwen3 no site exigem uma ligação
+a um servidor de inferência configurada separadamente.
+
+### Pedir um escritório completo
+
+Abre a sala de destino, escolhe **Configurar por mim** e envia:
+
+> Prepara este escritório para 20 pessoas, com computadores, impressora, tomadas e um bastidor. Liga os equipamentos e verifica o que falta.
+
+Este pedido funciona também no site sem ligação ao Ollama. Numa sala vazia com
+espaço suficiente, cria 20 computadores, uma impressora, 11 tomadas duplas, um
+bastidor de 24 U, switch e patch panel de 24 portas, montados e ligados por 63
+cabos documentais. Os equipamentos compatíveis já existentes são reutilizados;
+repetir o pedido não duplica a instalação nem cria uma gravação sem alterações.
+Para 30 pessoas, as quantidades são divididas pelos limites de criação em lote.
+
+A verificação final calcula os percursos reais do modelo e indica o que fica por
+documentar, incluindo IPs, VLANs e destino Internet. Não inventa endereçamento nem
+confirma acesso físico à rede. Falta de espaço, bloqueio ou capacidade insuficiente
+impede todo o lote. O relatório acompanha o resultado aplicado, e Desfazer recupera
+o estado anterior numa única operação.
+
+### Reparação de ligações, IPs em lote e filial por etapas
+
+Em **Configurar por mim**, os seguintes pedidos funcionam também sem Ollama:
+
+```text
+Revê esta sala e completa as ligações que faltam, usando as portas livres.
+Usa a rede 192.168.10.0/24, reserva o gateway .1 e atribui IPs aos computadores sem repetir endereços.
+Prepara uma filial com dois pisos, três departamentos e 40 postos.
+```
+
+A reparação preserva os cabos confirmados e as propostas, completa canais de
+patch panel já ligados ao switch e pode ligar diretamente a switches da mesma
+sala. Não cria equipamentos nem retira ligações. O relatório final mostra o que
+continua sem percurso; uma ligação registada não confirma a instalação física.
+
+O endereçamento é calculado no browser a partir da sub-rede e gateway explícitos.
+Reserva rede, broadcast, gateway e endereços já usados no mesmo domínio. Preserva
+IPs existentes válidos; recusa endereços fora da rede, gateways incompatíveis,
+VLANs com outro plano e intervalos sem capacidade. O lote inteiro é validado antes
+de aplicar. O pedido pode terminar com `a partir de .10 sem repetir endereços` ou
+usar `equipamentos` em vez de `computadores`. Limite: 100 equipamentos por lote.
+Os valores de rede não entram no histórico enviado ao modelo.
+
+O plano de filial valida previamente todos os passos e distribui os postos pelos
+departamentos. Por predefinição cria um edifício, pisos e salas de 12 × 10 m,
+com uma impressora e um bastidor por departamento e cablagem documental. Podes
+indicar o nome: `Prepara uma filial chamada "Filial Lisboa" com dois pisos, três
+departamentos e 40 postos.` As dimensões do edifício são calculadas para as salas.
+Cada etapa respeita 12 ações/50 equipamentos novos e é guardada antes da seguinte;
+os limites globais do projeto continuam em vigor. A preparação não inventa IPs,
+VLANs, país, responsáveis ou ligação à Internet.
+
+Os controlos permitem **Pausar após esta etapa**, **Retomar**, **Desfazer última
+etapa** e **Terminar plano**. Terminar conserva o trabalho aplicado. A retoma é
+guardada em sessionStorage no mesmo separador, incluindo após recarregar; fechar
+o separador termina essa disponibilidade. Após recarregar, o botão Desfazer serve
+as etapas executadas nessa nova sessão; estados anteriores permanecem no histórico
+do projeto. Alterações manuais, conflitos ou falhas de gravação pausam a execução;
+nenhuma etapa posterior é aplicada sobre um estado diferente do esperado.

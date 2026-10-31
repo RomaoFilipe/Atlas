@@ -7,24 +7,30 @@ export function configurationSteps(project){
  for(const r of project.rooms)for(const task of roomTasks(project,r.id))missing.add(task.device+':'+task.port);
  for(const d of project.devices)for(const port of d.pendingNetworkPorts||[])missing.add(d.id+':'+port);
  const pending=missing.size+proposals;
+ const building=project.sites.length>0;
+ const floors=project.floors.some(f=>project.sites.some(s=>s.id===f.site));
  const spaces=project.rooms.some(r=>project.floors.some(f=>f.id===r.floor&&project.sites.some(s=>s.id===f.site)));
  const equipped=spaces&&project.devices.some(d=>project.rooms.some(r=>r.id===d.room));
  return [
-  {id:'spaces',title:'1. Criar espaços',description:'Crie o edifício, os pisos e as salas onde vai organizar os equipamentos.',action:spaces?'Gerir espaços':project.floors.length?'Criar sala':'Criar edifício',done:spaces,enabled:true,count:`${project.sites.length} edifícios · ${project.floors.length} pisos · ${project.rooms.length} salas`,next:'Comece por criar um edifício com pisos e salas.'},
-  {id:'equipment',title:'2. Equipar salas',description:'Escolha uma sala e adicione os equipamentos. Os detalhes técnicos podem ficar para depois.',action:'Equipar uma sala',done:equipped,enabled:spaces,count:`${project.devices.length} equipamentos`,next:'Os espaços estão criados. Agora equipe a primeira sala.',blocked:'Crie primeiro uma sala.'},
-  {id:'connections',title:'3. Documentar ligações',description:'Registe os cabos e reveja as propostas. Pode deixar ligações por identificar e voltar mais tarde.',action:pending?'Resolver ligações':'Documentar ligação',done:equipped&&pending===0,enabled:equipped,count:`${project.links.length} ligações · ${pending} por documentar ou confirmar`,next:'Já tem equipamentos. Agora documente as ligações e confirme as propostas.',blocked:'Adicione primeiro equipamentos a uma sala.'},
-  {id:'check',title:'4. Rever pendências',description:'Reveja erros de configuração, responsáveis e outros dados em falta. Abra cada pendência para a resolver.',action:'Rever pendências',done:equipped&&pending===0&&issues.length===0,enabled:equipped,count:`${issues.length} pendências · ${proposals} propostas`,next:'As ligações estão documentadas. Reveja agora as restantes pendências.',blocked:'Adicione primeiro equipamentos a uma sala.'}
+  {id:'building',title:'1. Edifício',description:'Crie o edifício que vai receber a infraestrutura.',action:building?'Gerir edifícios':'Criar edifício',done:building,enabled:true,count:`${project.sites.length} edifícios`,next:'Comece por criar o edifício.'},
+  {id:'floor',title:'2. Piso',description:'Adicione os pisos do edifício.',action:floors?'Adicionar piso':'Criar piso',done:floors,enabled:building,count:`${project.floors.length} pisos`,next:'Crie o primeiro piso do edifício.',blocked:'Crie primeiro um edifício.'},
+  {id:'room',title:'3. Sala',description:'Crie as salas onde vai colocar os equipamentos.',action:spaces?'Adicionar sala':'Criar sala',done:spaces,enabled:floors,count:`${project.rooms.length} salas`,next:'Adicione uma sala ao piso.',blocked:'Crie primeiro um piso.'},
+  {id:'equipment',title:'4. Equipamentos',description:'Escolha uma sala e adicione os equipamentos. Os detalhes técnicos podem ficar para depois.',action:'Equipar uma sala',done:equipped,enabled:spaces,count:`${project.devices.length} equipamentos`,next:'Os espaços estão criados. Agora equipe a primeira sala.',blocked:'Crie primeiro uma sala.'},
+  {id:'connections',title:'5. Ligações',description:'Registe os cabos e reveja as propostas. Pode deixar ligações por identificar e voltar mais tarde.',action:pending?'Resolver ligações':'Documentar ligação',done:equipped&&pending===0,enabled:equipped,count:`${project.links.length} ligações · ${pending} por documentar ou confirmar`,next:'Já tem equipamentos. Agora documente as ligações e confirme as propostas.',blocked:'Adicione primeiro equipamentos a uma sala.'},
+  {id:'check',title:'6. Rever',description:'Reveja erros de configuração, responsáveis e outros dados em falta. Abra cada pendência para a resolver.',action:'Rever pendências',done:equipped&&pending===0&&issues.length===0,enabled:equipped,count:`${issues.length} pendências · ${proposals} propostas`,next:'As ligações estão documentadas. Reveja agora as restantes pendências.',blocked:'Adicione primeiro equipamentos a uma sala.'}
  ];
 }
+const stepCache=new WeakMap();
+function cachedSteps(project){const day=new Date().toISOString().slice(0,10),entry=stepCache.get(project);if(entry?.day===day)return entry.steps;const steps=configurationSteps(project);stepCache.set(project,{day,steps});return steps;}
 export function initConfigurationGuide({get,actions}){
  const guide=document.createElement('details');guide.id='configurationGuide';guide.className='configuration-guide';
  guide.innerHTML='<summary>Configurar o projeto <span data-guide-progress></span><span data-guide-summary></span></summary><div class="configuration-next"><div><small>PRÓXIMO PASSO</small><p data-guide-next role="status" aria-live="polite"></p></div><button type="button" class="primary" data-guide-continue></button></div><p data-guide-example hidden>Está a explorar um exemplo. O percurso e as pendências refletem esses dados.</p><div class="configuration-steps"></div><details class="configuration-optional"><summary>Opcional · Redes / VLANs e empresa</summary><p>Pode registar VLANs, sub-redes e gateways quando tiver essa informação. Estas opções não impedem continuar o percurso.</p><button type="button" data-guide-action="networks">Configurar redes / VLANs</button><button type="button" data-guide-action="organization">Empresa e filiais</button></details><div class="configuration-footer"><span>As alterações são guardadas automaticamente. Pode interromper e retomar pelo estado atual do projeto. Este guia verifica os registos, não a instalação física.</span></div>';
  document.querySelector('#mapWorkspace').before(guide);
  let initialized=false;
  guide.addEventListener('click',event=>{const button=event.target.closest('[data-guide-action]');if(button&&!button.disabled)actions[button.dataset.guideAction]();});
- return {render(){const {project,ready}=get(),steps=configurationSteps(project),current=steps.find(step=>!step.done),complete=!current;
+ return {render(){const {project,ready}=get(),steps=cachedSteps(project),current=steps.find(step=>!step.done),complete=!current;
  if(!initialized&&ready){guide.open=!project.exampleKey&&!complete;initialized=true;}
- guide.querySelector('[data-guide-progress]').textContent=steps.filter(step=>step.done).length+' de 4 etapas';
+ guide.querySelector('[data-guide-progress]').textContent=steps.filter(step=>step.done).length+' de '+steps.length+' etapas';
  guide.querySelector('[data-guide-summary]').textContent=ready?(current?.title.slice(3)||'Sem pendências nas verificações disponíveis'):'A carregar…';
  guide.querySelector('[data-guide-next]').textContent=ready?(current?.next||'Sem pendências nas verificações disponíveis. Pode rever o projeto ou continuar a adicionar espaços e equipamentos.'):'A carregar o projeto…';
  guide.querySelector('[data-guide-example]').hidden=!project.exampleKey;

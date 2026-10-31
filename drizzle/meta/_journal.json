@@ -15,6 +15,41 @@
       "when": 1790167480741,
       "tag": "0001_acoustic_scarecrow",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1792940180689,
+      "tag": "0002_project_history",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1793223483386,
+      "tag": "0003_project_audit",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1793223662068,
+      "tag": "0004_audit_triggers",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1793466000000,
+      "tag": "0005_project_actor",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1793466100000,
+      "tag": "0006_entity_storage",
+      "breakpoints": true
     }
   ]
 }

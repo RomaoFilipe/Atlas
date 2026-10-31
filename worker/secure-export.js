@@ -1,6 +1,6 @@
 // Export encryption is server-side only. No key is included in public assets.
 const SEALED_SITE='appgprj_6ab3b74fd9788191b898fe08435d211b';
-const SEALED_LIMIT=1500000,SEALED_FILE_LIMIT=2100000;
+const SEALED_LIMIT=20000000,SEALED_FILE_LIMIT=28000000;
 const sealedEncoder=new TextEncoder(),sealedDecoder=new TextDecoder('utf-8',{fatal:true});
 const sealedB64=bytes=>{let s='';for(let i=0;i<bytes.length;i+=8192)s+=String.fromCharCode(...bytes.subarray(i,i+8192));return btoa(s);};
 function sealedBytes(value,length,max=SEALED_FILE_LIMIT){if(typeof value!=='string'||value.length>max||!value.length||value.length%4||!/^[A-Za-z0-9+/]*={0,2}$/.test(value))throw new Error('Invalid envelope');const bytes=Uint8Array.from(atob(value),c=>c.charCodeAt(0));if((length!==undefined&&bytes.length!==length)||sealedB64(bytes)!==value)throw new Error('Invalid envelope');return bytes;}
@@ -19,5 +19,5 @@ async function secureExportAPI(request,env,url,owner){if(!['/api/secure-export',
  const exporting=url.pathname==='/api/secure-export';let raw;
  try{raw=await readBounded(request,exporting?SEALED_LIMIT+100:SEALED_FILE_LIMIT);}catch{return json({error:'O ficheiro excede o tamanho permitido.'},413);}
  try{const input=JSON.parse(sealedDecoder.decode(raw));if(exporting){const envelope=await sealProject(input.project,owner,config);return new Response(JSON.stringify(envelope),{headers:{'Content-Type':'application/vnd.atlas.sealed+json','Content-Disposition':'attachment; filename="atlas-projeto.atlasenc"','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});}const project=await unsealProject(input,owner,config);return json({project});
- }catch(err){if(exporting)return json({error:err.message==='SIZE_LIMIT'?'O projeto excede o limite de 1,5 MB.':'Não foi possível cifrar este projeto. Confirme que os dados são válidos.'},400);return json({error:'Não foi possível abrir o ficheiro. Pode pertencer a outra conta, estar alterado ou precisar de uma chave anterior.'},400);}
+ }catch(err){if(exporting)return json({error:err.message==='SIZE_LIMIT'?'O projeto excede o limite de 20 MB.':'Não foi possível cifrar este projeto. Confirme que os dados são válidos.'},400);return json({error:'Não foi possível abrir o ficheiro. Pode pertencer a outra conta, estar alterado ou precisar de uma chave anterior.'},400);}
 }

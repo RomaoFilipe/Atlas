@@ -8,9 +8,15 @@
     "db:generate": "drizzle-kit generate",
     "start": "node scripts/start.mjs",
     "dev": "node scripts/start.mjs",
-    "test": "node scripts/build.mjs && node --test tests/*.test.mjs"
+    "test": "node scripts/build.mjs && node --test tests/*.test.mjs",
+    "bench:map": "node scripts/benchmark-map.mjs",
+    "test:browser": "playwright test",
+    "eval:assistant": "node scripts/evaluate-assistant.mjs",
+    "account": "node scripts/account.mjs",
+    "bench:inventory": "node scripts/build.mjs && node scripts/benchmark-inventory.mjs"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.1",
     "drizzle-kit": "0.31.4",
     "drizzle-orm": "0.44.5"
   },

@@ -4,3 +4,10 @@ test('group movement and distribution preserve cables and rotate-aware room boun
 test('group operations fail atomically when one item is locked or would leave its room',()=>{const {p,ds}=setup(),ids=ds.map(d=>d.id);ds[1].layoutLocked=true;let before=JSON.stringify(p);assert.throws(()=>groupEdit(p,ids,{dx:.1}),/protegida/);assert.equal(JSON.stringify(p),before);ds[1].layoutLocked=false;before=JSON.stringify(p);assert.throws(()=>groupEdit(p,ids,{dx:100}),/edifício|limites/);assert.equal(JSON.stringify(p),before);});
 test('room transfer updates location only after destination validation and preserves links',()=>{const {p,ds,s}=setup(),d=ds[0],r=p.rooms.find(r=>r.id!==d.room&&r.floor===d.floor),links=clone(p.links);const target={x:s.x+r.x,z:s.z+r.z,rotation:45};r.layoutLocked=true;const before=JSON.stringify(p);assert.throws(()=>moveToRoom(p,d.id,target,r.id),/protegida/);assert.equal(JSON.stringify(p),before);r.layoutLocked=false;moveToRoom(p,d.id,target,r.id);assert.equal(d.room,r.id);assert.equal(d.rotation,45);assert.deepEqual(p.links,links);validate(p);});
 test('live measurements use rotated footprint and signed wall distances',()=>{const {p,ds}=setup(),d=ds[0];d.rotation=90;const m=measurements(p,d);assert(Math.abs(m.width-2.1)<1e-6);assert(Math.abs(m.depth-1.85)<1e-6);assert.equal(typeof m.left,'number');});
+
+test('group rejects invalid distances and hosted devices without partially changing positions',()=>{
+ const {p,ds}=setup(),before=JSON.stringify(p),ids=ds.slice(0,2).map(d=>d.id);
+ assert.throws(()=>groupEdit(p,ids,{dx:NaN}),/distâncias válidas/);assert.equal(JSON.stringify(p),before);
+ assert.throws(()=>groupEdit(p,ids,{dz:Infinity}),/distâncias válidas/);assert.equal(JSON.stringify(p),before);
+ ds[1].rack='mounted';const mounted=JSON.stringify(p);assert.throws(()=>groupEdit(p,ids,{dx:.1}),/físicos livres/);assert.equal(JSON.stringify(p),mounted);
+});

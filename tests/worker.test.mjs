@@ -1,8 +1,8 @@
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import {DatabaseSync} from 'node:sqlite';import worker from '../dist/server/index.js';import {demo} from '../public/demo.js';
-const db=new DatabaseSync(':memory:');db.exec(fs.readFileSync('drizzle/0000_swift_shen.sql','utf8'));db.exec(fs.readFileSync('drizzle/0001_acoustic_scarecrow.sql','utf8'));const DB = {
+const db=new DatabaseSync(':memory:');for(const file of fs.readdirSync('drizzle').filter(f=>f.endsWith('.sql')).sort())db.exec(fs.readFileSync('drizzle/'+file,'utf8'));const DB = {async batch(statements){db.exec('BEGIN IMMEDIATE');try{const results=[];for(const stmt of statements)results.push({meta:{changes:Number(db.prepare(stmt.sql).run(...stmt.args).changes)}});db.exec('COMMIT');return results;}catch(e){db.exec('ROLLBACK');throw e;}},
  prepare(sql) {
   return {bind(...args) {
-   return {
+   return {sql,args,
     async all() {return {results:db.prepare(sql).all(...args)};},
     async first() { return db.prepare(sql).get(...args) || null; },
     async run() {const r=db.prepare(sql).run(...args);return {meta:{changes:Number(r.changes)}};}
@@ -35,4 +35,76 @@ test('organization hierarchy and separated address domains persist through proje
  const loaded=await (await worker.fetch(req('GET',null,'corporate-user'),{DB})).json();assert.equal(loaded.project.organization.name,'Empresa internacional');assert.equal(loaded.project.sites[1].branch.timezone,'Europe/Berlin');assert.equal(loaded.project.devices[0].ip,loaded.project.devices[1].ip);
  const invalid=structuredClone(project);invalid.sites.forEach(site=>site.branch.networkDomain='SAME');assert.equal((await worker.fetch(req('PUT',{project:invalid,revision:1},'corporate-user'),{DB})).status,400);
  assert.equal((await (await worker.fetch(req('GET',null,'corporate-user'),{DB})).json()).revision,1);
+});
+
+test('automatic history records committed previous states, ignores rejected/no-op writes and isolates owners',async()=>{
+ const owner='history-test';
+ assert.equal((await worker.fetch(req('PUT',{project:demo,revision:0},owner),{DB})).status,200);
+ const changed={...demo,name:'Estado alterado'};
+ assert.equal((await worker.fetch(req('PUT',{project:changed,revision:1},owner),{DB})).status,200);
+ const list=await (await worker.fetch(featureReq('/api/history','GET',null,owner),{DB})).json();assert.equal(list.history.length,1);assert.equal(list.history[0].revision,1);
+ const id=list.history[0].id,old=await (await worker.fetch(featureReq('/api/history/'+id,'GET',null,owner),{DB})).json();assert.deepEqual(old.project,demo);
+ assert.equal((await worker.fetch(featureReq('/api/history/'+id,'GET',null,'different-user'),{DB})).status,404);
+ assert.equal((await worker.fetch(featureReq('/api/history/'+id,'DELETE',null,owner),{DB})).status,405);
+ assert.equal((await worker.fetch(req('PUT',{project:demo,revision:1},owner),{DB})).status,409);
+ assert.equal((await worker.fetch(req('PUT',{project:changed,revision:2},owner),{DB})).status,200);
+ assert.equal((await (await worker.fetch(featureReq('/api/history','GET',null,owner),{DB})).json()).history.length,1);
+ assert.equal((await worker.fetch(new Request('https://atlas.example/api/history'),{DB})).status,401);
+});
+test('automatic history retains the latest 100 snapshots and recovery preserves the displaced state',async()=>{
+ const owner='history-retention';let revision=0;
+ for(let i=0;i<104;i++){const response=await worker.fetch(req('PUT',{project:{...demo,name:'Estado '+i},revision},owner),{DB});assert.equal(response.status,200);revision=(await response.json()).revision;}
+ let list=(await (await worker.fetch(featureReq('/api/history','GET',null,owner),{DB})).json()).history;assert.equal(list.length,100);assert.equal(list[0].revision,103);assert.equal(list.at(-1).revision,4);
+ const snapshot=await (await worker.fetch(featureReq('/api/history/'+list[10].id,'GET',null,owner),{DB})).json();assert.equal((await worker.fetch(req('PUT',{project:snapshot.project,revision},owner),{DB})).status,200);
+ list=(await (await worker.fetch(featureReq('/api/history','GET',null,owner),{DB})).json()).history;assert.equal(list.length,100);assert.equal(list[0].revision,104);const previous=await(await worker.fetch(featureReq('/api/history/'+list[0].id,'GET',null,owner),{DB})).json();assert.equal(previous.project.name,'Estado 103');
+});
+
+test('server audit records entity diffs atomically, isolates owners and rejects mutations',async()=>{
+ const owner='audit-user',project=structuredClone(demo);
+ assert.equal((await worker.fetch(req('PUT',{project,revision:0},owner),{DB})).status,200);
+ project.devices[0].name='Audit renamed';assert.equal((await worker.fetch(req('PUT',{project,revision:1},owner),{DB})).status,200);
+ const response=await worker.fetch(featureReq('/api/audit?entity='+project.devices[0].id,'GET',null,owner),{DB}),data=await response.json();assert.equal(response.status,200);assert.equal(data.events[0].operation,'update');assert.equal(data.events[0].after.name,'Audit renamed');assert.notEqual(data.events[0].before.name,'Audit renamed');assert.equal(data.events[0].actor,owner);
+ assert.equal((await worker.fetch(req('PUT',{project:{...project,name:'Rejected'},revision:1},owner),{DB})).status,409);
+ assert.equal((await (await worker.fetch(featureReq('/api/audit?entity='+project.devices[0].id,'GET',null,owner),{DB})).json()).events.length,data.events.length);
+ assert.deepEqual((await (await worker.fetch(featureReq('/api/audit','GET',null,'audit-other'),{DB})).json()).events,[]);
+ assert.equal((await worker.fetch(featureReq('/api/audit','DELETE',null,owner),{DB})).status,405);
+ assert.throws(()=>db.prepare('DELETE FROM atlas_audit_events WHERE owner=?').run(owner),/immutable/);
+ assert.throws(()=>db.prepare('UPDATE atlas_audit_events SET actor=? WHERE owner=?').run('forged',owner),/immutable/);
+});
+
+test('organization roles protect all APIs and audit the authenticated author',async()=>{
+ const owner='organization:roles',access=(actor,role,organization='roles')=>({DB,ATLAS_ACCESS:{owner:organization==='roles'?owner:'organization:'+organization,actor,role,organization}});
+ assert.equal((await worker.fetch(req('PUT',{project:demo,revision:0},'alice'),access('alice','admin'))).status,200);
+ const changed=structuredClone(demo);changed.devices[0].name='Editor change';assert.equal((await worker.fetch(req('PUT',{project:changed,revision:1},'bob'),access('bob','editor'))).status,200);
+ const events=await(await worker.fetch(featureReq('/api/audit','GET',null,'carol'),access('carol','reader'))).json();assert.equal(events.events.find(e=>e.entity_type==='devices'&&e.operation==='update').actor,'bob');
+ for(const [path,method] of [['/api/project','PUT'],['/api/project','PATCH'],['/api/versions','POST'],['/api/assets','POST'],['/api/equipment-files','POST'],['/api/secure-import','POST']])assert.equal((await worker.fetch(featureReq(path,method,{},'carol'),access('carol','reader'))).status,403,path);
+ assert.equal((await worker.fetch(req('GET',null,'forged'),access('carol','reader'))).status,401);
+ assert.equal((await(await worker.fetch(req('GET',null,'dave'),access('dave','reader','other-org'))).json()).project,null);
+ assert.equal((await(await worker.fetch(req('GET',null,'carol'),access('carol','reader'))).json()).project.devices[0].name,'Editor change');
+});
+test('entity storage patches only changed rows, preserves order, rejects stale edits and rolls back failed batches',async()=>{
+ const {projectDelta}=await import('../public/project-delta.js'),owner='entity-deltas',original=structuredClone(demo);
+ assert.equal((await worker.fetch(req('PUT',{project:original,revision:0},owner),{DB})).status,200);
+ const before=db.prepare('SELECT rowid,id,document FROM atlas_entities WHERE owner=? AND kind=? ORDER BY position').all(owner,'devices');const changed=structuredClone(original);changed.devices[0].name='Only one changed';changed.devices.reverse();
+ const delta=projectDelta(original,changed);assert.ok(JSON.stringify(delta).length<JSON.stringify(changed).length);assert.equal((await worker.fetch(req('PATCH',{delta,revision:1},owner),{DB})).status,200);assert.deepEqual((await(await worker.fetch(req('GET',null,owner),{DB})).json()).project,changed);
+ const after=db.prepare('SELECT rowid,id,document FROM atlas_entities WHERE owner=? AND kind=? ORDER BY position').all(owner,'devices');for(const row of before){const current=after.find(x=>x.id===row.id);assert.equal(current.rowid,row.rowid);if(row.id!==original.devices[0].id)assert.equal(current.document,row.document);}
+ assert.equal((await worker.fetch(req('PATCH',{delta,revision:1},owner),{DB})).status,409);
+ db.exec("CREATE TRIGGER test_fail_entity BEFORE UPDATE ON atlas_entities WHEN NEW.name='FAIL-BATCH' BEGIN SELECT RAISE(ABORT,'forced test failure');END;");const broken=structuredClone(changed);broken.devices[0].name='FAIL-BATCH';assert.equal((await worker.fetch(req('PATCH',{delta:projectDelta(changed,broken),revision:2},owner),{DB})).status,503);db.exec('DROP TRIGGER test_fail_entity');const restored=await(await worker.fetch(req('GET',null,owner),{DB})).json();assert.equal(restored.revision,2);assert.deepEqual(restored.project,changed);
+ assert.equal(db.prepare('SELECT count(*) AS n FROM atlas_projects WHERE owner=?').get(owner).n,0);
+});
+test('large inventory is stored by entity, paginated and filtered by floor without fetching other floors',async()=>{
+ const {normalizeProject}=await import('../public/model.js');const owner='large-inventory',p=normalizeProject(structuredClone(demo)),source=p.devices.find(d=>d.type==='Computador')||p.devices.find(d=>!d.rack&&d.type!=='VM');
+ assert.ok(source);p.links=[];p.devices=Array.from({length:2000},(_,i)=>({...source,id:'load-'+i,name:'Equipment '+String(i).padStart(4,'0'),ip:'',gateway:'',rack:'',host:'',type:'Computador',portCount:1}));assert.equal((await worker.fetch(req('PUT',{project:p,revision:0},owner),{DB})).status,200);
+ let after=0,count=0,ids=new Set();do{const response=await worker.fetch(featureReq('/api/inventory?limit=200&after='+after,'GET',null,owner),{DB});assert.equal(response.status,200);const data=await response.json();for(const d of data.devices){assert.ok(!ids.has(d.id));ids.add(d.id);}count+=data.devices.length;after=data.next;}while(after!==null);assert.equal(count,2000);
+ const filtered=await(await worker.fetch(featureReq('/api/inventory?q=Equipment%200123','GET',null,owner),{DB})).json();assert.equal(filtered.devices.length,1);assert.equal(filtered.devices[0].id,'load-123');const floor=p.devices[0].floor,plant=await(await worker.fetch(featureReq('/api/plant?floor='+floor+'&limit=25','GET',null,owner),{DB})).json();assert.equal(plant.devices.length,25);assert.ok(plant.devices.every(d=>d.floor===floor));assert.equal(plant.revision,1);
+ const manifest=await(await worker.fetch(featureReq('/api/project/manifest','GET',null,owner),{DB})).json();assert.ok(!manifest.project.devices);assert.equal(manifest.project.floors.length,p.floors.length);
+ assert.equal((await worker.fetch(featureReq('/api/inventory?revision=0','GET',null,owner),{DB})).status,409);assert.equal((await worker.fetch(featureReq('/api/inventory?limit=201','GET',null,owner),{DB})).status,400);assert.equal((await(await worker.fetch(featureReq('/api/inventory','GET',null,'foreign-org'),{DB})).json()).devices.length,0);
+});
+
+test('two writers racing on a revision cannot mix entity updates or audit authors',async()=>{
+ const owner='race-owner';await worker.fetch(req('PUT',{project:demo,revision:0},owner),{DB});const a=structuredClone(demo),b=structuredClone(demo);a.devices[0].name='Writer A';b.devices[1].name='Writer B';const result=await Promise.all([worker.fetch(req('PUT',{project:a,revision:1},owner),{DB}),worker.fetch(req('PUT',{project:b,revision:1},owner),{DB})]);assert.deepEqual(result.map(r=>r.status).sort(),[200,409]);const state=await(await worker.fetch(req('GET',null,owner),{DB})).json();assert.equal(state.revision,2);assert.deepEqual(state.project,result[0].status===200?a:b);
+});
+
+test('migration preserves existing documents, empty optional lists, history and audit without replay',async()=>{
+ const legacy=new DatabaseSync(':memory:');try{for(const file of fs.readdirSync('drizzle').filter(f=>f.endsWith('.sql')&&!f.startsWith('0006')).sort())legacy.exec(fs.readFileSync('drizzle/'+file,'utf8'));const p={...structuredClone(demo),floors:[],rooms:[],templates:[],connectionProposals:[]};legacy.prepare('INSERT INTO atlas_projects(owner,document,revision,updated_at,actor) VALUES(?,?,7,?,?)').run('migration-owner',JSON.stringify(p),'2026-10-31T00:00:00Z','migration-actor');const count=legacy.prepare('SELECT count(*) AS n FROM atlas_audit_events').get().n;legacy.exec(fs.readFileSync('drizzle/0006_entity_storage.sql','utf8'));const adapter={prepare(sql){return {bind(...args){return {async first(){return legacy.prepare(sql).get(...args)||null;}};}};}};const result=await(await worker.fetch(req('GET',null,'migration-owner'),{DB:adapter})).json();assert.equal(result.revision,7);assert.deepEqual(result.project,p);assert.equal(legacy.prepare('SELECT count(*) AS n FROM atlas_audit_events').get().n,count);assert.equal(legacy.prepare('SELECT document FROM atlas_projects WHERE owner=?').get('migration-owner').document,JSON.stringify(p));}finally{legacy.close();}
 });

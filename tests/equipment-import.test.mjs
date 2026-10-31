@@ -40,5 +40,5 @@ test('protected and full rooms and project limits are reported without changing 
  const p=setup(),room=p.rooms[0];room.layoutLocked=true;assert.match(planEquipmentImport(p,[{nome:'PC',tipo:'PC'}],{defaultRoomId:room.id}).errors[0].message,/protegida/);
  delete room.layoutLocked;room.w=.1;room.d=.1;assert.match(planEquipmentImport(p,[{nome:'PC',tipo:'PC'}],{defaultRoomId:room.id}).errors[0].message,/espaço/);
  assert.throws(()=>planEquipmentImport(p,Array.from({length:201},()=>({nome:'PC',tipo:'PC'}))),/200/);
- const capacity=clone(p);capacity.devices=Array.from({length:500},()=>({}));assert.throws(()=>planEquipmentImport(capacity,[{nome:'PC',tipo:'PC'}]),/500/);
+ const capacity=clone(p);capacity.devices=Array.from({length:10000},()=>({}));assert.throws(()=>planEquipmentImport(capacity,[{nome:'PC',tipo:'PC'}]),/10 000/);
 });

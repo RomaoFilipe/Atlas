@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-31T18:04:11.858Z",
+  "node": "v22.23.3",
+  "scope": "Synthetic in-memory SQLite, one execution per size. Includes validation and history. No simultaneous users or browser rendering.",
+  "results": [
+    {
+      "devices": 1000,
+      "initialSaveMs": 58.47,
+      "oneDevicePatchMs": 20.23,
+      "patchRequestBytes": 268,
+      "fullProjectBytes": 186081,
+      "inventoryPageMs": 1.24,
+      "inventoryPageBytes": 18423,
+      "plantPageMs": 1.17,
+      "searchMs": 1.11
+    },
+    {
+      "devices": 5000,
+      "initialSaveMs": 95.95,
+      "oneDevicePatchMs": 72.96,
+      "patchRequestBytes": 268,
+      "fullProjectBytes": 938081,
+      "inventoryPageMs": 2.15,
+      "inventoryPageBytes": 18423,
+      "plantPageMs": 1.32,
+      "searchMs": 2.14
+    },
+    {
+      "devices": 10000,
+      "initialSaveMs": 224.9,
+      "oneDevicePatchMs": 217.06,
+      "patchRequestBytes": 268,
+      "fullProjectBytes": 1878081,
+      "inventoryPageMs": 3.39,
+      "inventoryPageBytes": 18423,
+      "plantPageMs": 2.71,
+      "searchMs": 7.08
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 import {escapeHTML as e} from './model.js';
 import {portsFor,portInUse,auditProject} from './network.js';
 const connectedTypes=new Set(['Computador','Portátil','Posto de trabalho','Telefone IP','Impressora','Wi-Fi','Câmara','Switch','Mini-switch','Firewall','Servidor','Armazenamento']);
-export const operationKinds={network:'Erros de configuração',expired:'Garantias vencidas',warranty:'Garantias a terminar (90 dias)',unconnected:'Sem ligação documentada',owner:'Responsável por atribuir',classification:'Local por classificar'};
+export const operationKinds={maintenance:'Revisões (30 dias ou vencidas)',replacement:'Substituições (90 dias ou vencidas)',network:'Erros de configuração',expired:'Garantias vencidas',warranty:'Garantias a terminar (90 dias)',unconnected:'Sem ligação documentada',owner:'Responsável por atribuir',classification:'Local por classificar'};
 export function operationReport(project,{today=new Date().toISOString().slice(0,10)}={}){
  if(!/^\d{4}-\d{2}-\d{2}$/.test(today)||Number.isNaN(Date.parse(today))||new Date(today).toISOString().slice(0,10)!==today)throw new Error('Data de referência inválida.');
  const sites=new Map(project.sites.map(s=>[s.id,s])),devices=new Map(project.devices.map(d=>[d.id,d])),issues=[],capacity=new Map(project.sites.map(s=>[s.id,{devices:0,freePorts:0,totalPorts:0,usedU:0,totalU:0,racks:0}]));
@@ -12,13 +12,14 @@ export function operationReport(project,{today=new Date().toISOString().slice(0,
   const state=d.record?.state;if(state==='Abatido')continue;
   if(!d.record?.owner?.trim())add('owner',d.site,'devices',d.id,d.name,'A ficha não tem responsável atribuído.');
   if(connectedTypes.has(d.type)&&(!state||state==='Em serviço')&&!project.links.some(link=>link.kind!=='power'&&(link.a===d.id||link.b===d.id)))add('unconnected',d.site,'devices',d.id,d.name,'Não existe uma ligação de dados registada.');
+  for(const [field,kind,daysAhead,title] of [['nextMaintenance','maintenance',30,'Revisão'],['replacementDate','replacement',90,'Substituição']]){const due=d.record?.[field];if(due){const days=Math.round((Date.parse(due)-Date.parse(today))/86400000);if(days<=daysAhead)add(kind,d.site,'devices',d.id,d.name,title+' prevista para '+due+(days<0?' · vencida.':'.'),'aviso',due);}}
   const warranty=d.record?.warranty;if(warranty){const days=Math.round((Date.parse(warranty)-Date.parse(today))/86400000);if(days<0)add('expired',d.site,'devices',d.id,d.name,'Garantia terminou em '+warranty+'.','aviso',warranty);else if(days<=90)add('warranty',d.site,'devices',d.id,d.name,'Garantia termina em '+warranty+' ('+days+' dias).','aviso',warranty);}
  }
  for(const rack of project.racks){const summary=capacity.get(rack.site);if(summary){summary.racks++;summary.totalU+=rack.units;summary.usedU+=project.devices.filter(d=>d.rack===rack.id).reduce((n,d)=>n+d.units,0);}}
  for(const issue of auditProject(project).filter(issue=>issue.severity==='erro')){const device=issue.type==='devices'?devices.get(issue.id):null,link=issue.type==='links'?project.links.find(l=>l.id===issue.id):null,siteId=device?.site||devices.get(link?.a)?.site;if(sites.has(siteId))add('network',siteId,issue.type,issue.id,device?.name||link?.label||issue.id,issue.message,'erro');}
  // Each audit message is retained: a cable can have multiple distinct configuration errors.
  issues.forEach((issue,index)=>issue.key+=':'+index);
- const priority={network:0,expired:1,warranty:2,unconnected:3,classification:4,owner:5};issues.sort((a,b)=>priority[a.kind]-priority[b.kind]||(a.due||'').localeCompare(b.due||'')||a.label.localeCompare(b.label,'pt'));
+ const priority={maintenance:1,replacement:1,network:0,expired:1,warranty:2,unconnected:3,classification:4,owner:5};issues.sort((a,b)=>priority[a.kind]-priority[b.kind]||(a.due||'').localeCompare(b.due||'')||a.label.localeCompare(b.label,'pt'));
  const branches=new Map();for(const site of project.sites){const key=site.branch?site.branch.country+'/'+site.branch.unit:'site:'+site.id;if(!branches.has(key))branches.set(key,{key,country:site.branch?.country||'',unit:site.branch?.unit||'',name:site.branch?.unit||site.name,city:site.branch?.city||'',sites:[],issues:[],capacity:{devices:0,freePorts:0,totalPorts:0,usedU:0,totalU:0,racks:0}});const branch=branches.get(key);branch.sites.push(site);for(const [key,value] of Object.entries(capacity.get(site.id)))branch.capacity[key]+=value;}
  for(const issue of issues){const site=sites.get(issue.siteId),key=site?.branch?site.branch.country+'/'+site.branch.unit:'site:'+site?.id;branches.get(key)?.issues.push(issue);}
  return {today,issues,branches:[...branches.values()],capacity};

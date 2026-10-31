@@ -1,11 +1,26 @@
 async function readBounded(request,limit){const reader=request.body?.getReader();if(!reader)return new Uint8Array();const chunks=[];let total=0;while(true){const {done,value}=await reader.read();if(done)break;total+=value.length;if(total>limit){await reader.cancel();throw new Error('Ficheiro demasiado grande.');}chunks.push(value);}const out=new Uint8Array(total);let pos=0;for(const c of chunks){out.set(c,pos);pos+=c.length;}return out;}
 async function featureAPI(request,env,url,owner){
- const path=url.pathname;if(!path.startsWith('/api/versions')&&!path.startsWith('/api/assets')&&!path.startsWith('/api/equipment-files'))return null;
+ const path=url.pathname;if(!path.startsWith('/api/audit')&&!path.startsWith('/api/history')&&!path.startsWith('/api/versions')&&!path.startsWith('/api/assets')&&!path.startsWith('/api/equipment-files'))return null;
  if(!owner)return json({error:'Inicie sessão para continuar.'},401);
  if(!['GET','HEAD'].includes(request.method)){const origin=request.headers.get('origin');if(origin&&origin!==url.origin)return json({error:'Origem não autorizada.'},403);}
  try{
+ if(path.startsWith('/api/audit')){
+  if(path!=='/api/audit')return json({error:'Registo não encontrado.'},404);
+  if(request.method!=='GET')return json({error:'A auditoria não pode ser alterada.'},405);
+  const before=url.searchParams.get('before'),entity=url.searchParams.get('entity');
+  if(before&&!/^[1-9][0-9]{0,14}$/.test(before)||entity&&(!/^[a-zA-Z0-9_-]{1,100}$/.test(entity)))return json({error:'Filtro inválido.'},400);
+  const clauses=['owner = ?'],params=[owner];if(before){clauses.push('id < ?');params.push(Number(before));}if(entity){clauses.push('entity_id = ?');params.push(entity);}
+  const result=await env.DB.prepare('SELECT id,actor,revision,entity_type,entity_id,operation,before_json,after_json,created_at FROM atlas_audit_events WHERE '+clauses.join(' AND ')+' ORDER BY id DESC LIMIT 51').bind(...params).all();
+  const rows=result.results.slice(0,50);return json({events:rows.map(row=>({...row,before:row.before_json?JSON.parse(row.before_json):null,after:row.after_json?JSON.parse(row.after_json):null,before_json:undefined,after_json:undefined})),next:result.results.length>50?rows.at(-1).id:null});
+ }
+ if(path.startsWith('/api/history')){
+ if(request.method!=='GET')return json({error:'Método não permitido.'},405);
+ if(path==='/api/history'){const result=await env.DB.prepare('SELECT id,revision,created_at FROM atlas_project_history WHERE owner = ? ORDER BY revision DESC LIMIT 100').bind(owner).all();return json({history:result.results});}
+ const match=path.match(/^\/api\/history\/([a-f0-9]{32})$/);if(!match)return json({error:'Registo não encontrado.'},404);
+ const row=await env.DB.prepare('SELECT id,revision,document,created_at FROM atlas_project_history WHERE id = ? AND owner = ?').bind(match[1],owner).first();return row?json({id:row.id,label:'Revisão '+row.revision,revision:row.revision,created_at:row.created_at,project:JSON.parse(row.document)}):json({error:'Registo não encontrado.'},404);
+ }
  if(path==='/api/versions'&&request.method==='GET'){const result=await env.DB.prepare('SELECT id,label,created_at FROM atlas_versions WHERE owner = ? ORDER BY created_at DESC LIMIT 200').bind(owner).all();return json({versions:result.results});}
- if(path==='/api/versions'&&request.method==='POST'){const raw=await readBounded(request,1500000);const input=JSON.parse(new TextDecoder().decode(raw));validate(input.project);if(typeof input.label!=='string'||!input.label.trim()||input.label.length>100)return json({error:'Indique um nome para a versão (até 100 caracteres).'},400);const count=await env.DB.prepare('SELECT count(*) AS n FROM atlas_versions WHERE owner = ?').bind(owner).first();if(count.n>=200)return json({error:'Limite de 200 versões atingido. Exporte e elimine uma versão antiga.'},400);const id=crypto.randomUUID(),now=new Date().toISOString();await env.DB.prepare('INSERT INTO atlas_versions (id,owner,label,document,created_at) VALUES (?,?,?,?,?)').bind(id,owner,input.label.trim(),JSON.stringify(input.project),now).run();return json({id,label:input.label.trim(),created_at:now},201);}
+ if(path==='/api/versions'&&request.method==='POST'){const raw=await readBounded(request,20000000);const input=JSON.parse(new TextDecoder().decode(raw));validate(input.project);if(typeof input.label!=='string'||!input.label.trim()||input.label.length>100)return json({error:'Indique um nome para a versão (até 100 caracteres).'},400);const count=await env.DB.prepare('SELECT count(*) AS n FROM atlas_versions WHERE owner = ?').bind(owner).first();if(count.n>=200)return json({error:'Limite de 200 versões atingido. Exporte e elimine uma versão antiga.'},400);const id=crypto.randomUUID(),now=new Date().toISOString();await env.DB.prepare('INSERT INTO atlas_versions (id,owner,label,document,created_at) VALUES (?,?,?,?,?)').bind(id,owner,input.label.trim(),JSON.stringify(input.project),now).run();return json({id,label:input.label.trim(),created_at:now},201);}
  const version=path.match(/^\/api\/versions\/([a-zA-Z0-9_-]+)$/);if(version){if(request.method==='GET'){const row=await env.DB.prepare('SELECT id,label,document,created_at FROM atlas_versions WHERE id = ? AND owner = ?').bind(version[1],owner).first();return row?json({...row,project:JSON.parse(row.document),document:undefined}):json({error:'Versão não encontrada.'},404);}if(request.method==='DELETE'){await env.DB.prepare('DELETE FROM atlas_versions WHERE id = ? AND owner = ?').bind(version[1],owner).run();return json({ok:true});}}
  if(path.startsWith('/api/equipment-files')){
  if(!env.ATLAS_ASSETS)return json({error:'Armazenamento de anexos indisponível.'},503);

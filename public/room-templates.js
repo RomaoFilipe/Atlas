@@ -1,0 +1,26 @@
+import {clone,uid,validate} from './model.js';
+import {positionLock} from './map-locks.js';
+import {freeRoomPosition} from './room-position.js';
+const pick=(value,keys)=>Object.fromEntries(keys.filter(k=>value[k]!==undefined).map(k=>[k,clone(value[k])]));
+const unique=(items,name)=>{let result=name,n=2;while(items.some(x=>x.name===result))result=name+' '+n++;return result;};
+export function roomTemplateFrom(p,id,name){
+ const room=p.rooms.find(r=>r.id===id),floor=p.floors.find(f=>f.id===room?.floor),site=p.sites.find(s=>s.id===floor?.site);if(!room||!site)throw Error('Escolha uma sala existente.');name=String(name||'').trim();if(!name||name.length>100)throw Error('Indique um nome até 100 caracteres.');
+ const selected=p.devices.filter(d=>d.room===id),ids=new Set(selected.map(d=>d.id)),devices=selected.filter(d=>!d.host||ids.has(d.host)).map(d=>({...pick(d,['id','name','type','rack','host','u','units','portCount','y','rotation','deskWidth','deskDepth','monitors','portLabels','uplinkPort','model']),site:site.id,floor:floor.id,room:id,x:d.x-site.x,z:d.z-site.z,ip:'',gateway:'',vlan:0,role:'',layoutLocked:false})),all=new Set(devices.map(d=>d.id));
+ for(const d of devices){const external=p.links.filter(l=>(l.a===d.id&&!all.has(l.b))||(l.b===d.id&&!all.has(l.a)));const ports=[...(p.devices.find(x=>x.id===d.id).pendingNetworkPorts||[]),...external.map(l=>l.a===d.id?l.portA:l.portB)].filter(Boolean);if(ports.length)d.pendingNetworkPorts=[...new Set(ports)];}
+ const blueprint={version:3,name,sites:[{id:site.id,name:'Edifício do modelo',sub:'',x:0,z:0,w:site.w,d:site.d}],floors:[{id:floor.id,name:'Piso do modelo',site:site.id,level:0,elevation:0}],rooms:[{...pick(room,['id','name','x','z','w','d']),floor:floor.id}],racks:p.racks.filter(r=>r.room===id).map(r=>({...pick(r,['id','name','x','z','units']),site:site.id,floor:floor.id,room:id,locked:false,layoutLocked:false})),devices,links:p.links.filter(l=>all.has(l.a)&&all.has(l.b)).map(l=>({...pick(l,['id','label','a','b','portA','portB','kind','speed','category','length','color']),vlans:[],waypoints:[],routeNote:''})),nets:[],templates:[]};
+ validate(blueprint);return{id:uid('tpl'),name,type:'rooms',blueprint};
+}
+export function applyRoomTemplate(p,template,{floorId,name}={}){
+ const source=template.blueprint,room=source?.rooms?.[0],floor=p.floors.find(f=>f.id===floorId),site=p.sites.find(s=>s.id===floor?.site);if(template.type!=='rooms'||!room||source.rooms.length!==1)throw Error('Modelo de sala inválido.');validate(source);if(!site)throw Error('Escolha um piso de destino.');const lock=positionLock(p,'floors',floorId);if(lock)throw Error('Piso protegido por '+lock.name+'.');name=String(name||template.name).trim();if(!name||name.length>100)throw Error('Indique um nome até 100 caracteres.');
+ const target=freeRoomPosition(p,{...room,floor:floorId}),next=clone(p),id=uid('room'),map=new Map([...source.racks,...source.devices].map(d=>[d.id,uid('copy')]));
+ next.rooms.push({id,name:unique(next.rooms,name),floor:floorId,x:target.x,z:target.z,w:room.w,d:room.d});
+ for(const r of source.racks)next.racks.push({...clone(r),id:map.get(r.id),name:unique(next.racks,r.name),site:site.id,floor:floorId,room:id,x:target.x+r.x-room.x,z:target.z+r.z-room.z,locked:false,layoutLocked:false});
+ for(const d of source.devices){const clean=pick(d,['name','type','u','units','portCount','y','rotation','deskWidth','deskDepth','monitors','portLabels','uplinkPort','model','pendingNetworkPorts']);next.devices.push({...clean,id:map.get(d.id),name:unique(next.devices,d.name),site:site.id,floor:floorId,room:id,rack:map.get(d.rack)||'',host:map.get(d.host)||'',x:site.x+target.x+d.x-room.x,z:site.z+target.z+d.z-room.z,ip:'',gateway:'',vlan:0,role:'',layoutLocked:false});}
+ next.connectionProposals??=[];for(const l of source.links)next.connectionProposals.push({id:uid('proposal'),a:map.get(l.a),b:map.get(l.b),portA:l.portA,portB:l.portB,kind:l.kind});
+ validate(next);Object.assign(p,next);return id;
+}
+export function initRoomTemplates(app,{form,input,select,openRoom}){
+ function save(id){const room=app.get().project.rooms.find(r=>r.id===id);if(!room)return;form('Guardar modelo de sala',input('name','Nome do modelo',room.name,'text','required maxlength="100"')+'<p class="wide notice">Guarda medidas, disposição, bastidores e equipamentos. Não inclui IPs, responsáveis, fichas, anexos ou histórico. Os cabos internos serão propostas para rever ao aplicar.</p>',v=>app.mutate(p=>{if(p.templates.length>=50)throw Error('Limite de 50 modelos atingido.');p.templates.push(roomTemplateFrom(p,id,v.name));},'guardar modelo de sala'));}
+ function apply(template){const p=app.get().project;form('Aplicar modelo · '+template.name,input('name','Nome da nova sala',template.name,'text','required maxlength="100"')+select('floorId','Piso de destino',p.floors.map(f=>({...f,name:p.sites.find(s=>s.id===f.site)?.name+' · '+f.name})),p.floors[0]?.id)+'<p class="wide notice">A sala será colocada num espaço livre. Equipamentos e bastidores mantêm a disposição relativa. As ligações internas ficam como propostas para confirmar.</p>',v=>{let id;if(app.mutate(next=>id=applyRoomTemplate(next,template,v),'aplicar modelo de sala')){document.querySelector('#studio').close();openRoom(id);}});}
+ return{save,apply};
+}

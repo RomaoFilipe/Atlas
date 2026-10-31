@@ -2,19 +2,40 @@ services:
   atlas:
     build: .
     ports:
-      - "0.0.0.0:3000:3000"
+      - "127.0.0.1:3000:3000"
     environment:
-      ATLAS_ALLOWED_HOSTS: ${ATLAS_ALLOWED_HOSTS:-192.168.1.103,romao.local}
+      ATLAS_ALLOWED_HOSTS: ${ATLAS_ALLOWED_HOSTS:-}
       ATLAS_OLLAMA_URL: http://ollama:11434
+      ATLAS_OLLAMA_MODEL: ${ATLAS_OLLAMA_MODEL:-qwen3:14b}
+    depends_on:
+      ollama-init:
+        condition: service_completed_successfully
     volumes:
       - atlas-data:/data
     restart: unless-stopped
   ollama:
     image: ollama/ollama:latest
-    profiles: ["ai"]
+    environment:
+      OLLAMA_NO_CLOUD: "1"
     volumes:
       - ollama-data:/root/.ollama
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
     restart: unless-stopped
+  ollama-init:
+    image: ollama/ollama:latest
+    entrypoint: ["/bin/sh", "-c"]
+    command: ['ollama pull "$$ATLAS_OLLAMA_MODEL"']
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+      ATLAS_OLLAMA_MODEL: ${ATLAS_OLLAMA_MODEL:-qwen3:14b}
+    depends_on:
+      ollama:
+        condition: service_healthy
+    restart: "on-failure:3"
 volumes:
   atlas-data:
   ollama-data:

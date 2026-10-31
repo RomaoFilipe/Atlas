@@ -2,7 +2,7 @@
 export const toolGroups={spaces:['spaces','mount','templates'],cables:['cables','power'],audit:['audit','simulation'],dossier:['dossier','versions'],examples:['examples']};
 export function toolGroup(tab){return Object.values(toolGroups).find(group=>group.includes(tab))||[tab];}
 export function inspectorSection(node,current='summary'){
- if(node.matches('.socket-panel,.inspector-group,#stationDetails,#followCable,#manageRackPower'))return 'connections';
+ if(node.matches('#socketTrace,.socket-panel,.inspector-group,#stationDetails,#followCable,#manageRackPower'))return 'connections';
  if(node.matches('#assignSpace,#installDevice,#saveAsTemplate,#toggleRackLock,#rackCampus'))return 'location';
  if(node.matches('#equipmentRecordButton,.details,#openRack,#addInRack,#rackInterior'))return 'summary';
  if(node.tagName==='H3'){if(/Localização/.test(node.textContent))return 'location';if(/percurso|Ligações|Portas/.test(node.textContent))return 'connections';return 'summary';}
@@ -42,7 +42,7 @@ export function initWorkspaceNavigation(app){
  function refreshHeader(){const state=app.get();modes.querySelectorAll('[data-map-action]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mapAction===toolSelect.value)));finish.hidden=toolSelect.value==='navigate';const scope=[state.project.sites.find(s=>s.id===state.siteFilter)?.name,state.floorName,state.roomName,state.vlanFilter?'VLAN '+state.vlanFilter:''].filter(Boolean);$('#workspaceScope').textContent=state.query?.trim()?'Pesquisa em todo o projeto':scope.length?scope.join(' / '):'Todo o projeto';$('#resetWorkspaceFilters').hidden=!state.query&&!state.siteFilter&&!state.vlanFilter&&!state.floorName;$('#resetWorkspaceFilters').disabled=!state.query&&!state.siteFilter&&!state.vlanFilter&&!state.floorName;$('#inventoryMap').disabled=!state.selected.id;$('#viewTitle').textContent=surface==='inventory'?'Equipamentos':state.mode==='rack'?'Bastidor 3D':state.mode==='plan'?'Planta da rede informática':state.mode==='logical'?'Redes e ligações':'Campus 3D';if(title)title.textContent=surface==='inventory'?'PROJETO / EQUIPAMENTOS':'PROJETO / MAPA';}
  nav.onclick=ev=>{const button=ev.target.closest('[data-workspace]');if(!button)return;const id=button.dataset.workspace;if(['map','inventory'].includes(id))show(id);else{activate(id);app.openTool(id);body.classList.remove('open-navigation');}};
  $('#studio').addEventListener('close',()=>activate(surface));
- $('#search').addEventListener('input',()=>{if($('#search').value.trim())show('inventory');});
+ // Search suggestions open equipment directly; the inventory remains an explicit choice.
  $('#locations').addEventListener('click',()=>show('map'));
  // Changing to a visual route must always reveal the map, even from inventory.
  for(const id of ['physical','logical','planMode','rackMode'])$('#'+id).addEventListener('click',()=>show('map'));
