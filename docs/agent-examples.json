@@ -1,0 +1,176 @@
+[
+  {
+    "id": "nearest-complete",
+    "fixture": "disconnected",
+    "selected": "pc1",
+    "prompt": "Liga o equipamento selecionado à rede usando a tomada mais próxima.",
+    "tools": [
+      "connect_nearest_outlet"
+    ],
+    "newLinks": 3,
+    "route": [
+      "pc1",
+      "socket1",
+      "panel0",
+      "sw0"
+    ]
+  },
+  {
+    "id": "reuse-horizontal",
+    "fixture": "partial",
+    "selected": "pc1",
+    "prompt": "Liga o equipamento selecionado à rede usando a tomada mais próxima.",
+    "tools": [
+      "connect_nearest_outlet"
+    ],
+    "newLinks": 2
+  },
+  {
+    "id": "already-complete",
+    "fixture": "complete",
+    "selected": "pc1",
+    "prompt": "Liga o equipamento selecionado à rede usando a tomada mais próxima.",
+    "tools": [
+      "connect_nearest_outlet"
+    ],
+    "newLinks": 0,
+    "changed": false
+  },
+  {
+    "id": "access-port",
+    "fixture": "disconnected",
+    "selected": "sw0",
+    "prompt": "Configura a porta \"Gi1/0/1\" do equipamento selecionado como access na VLAN 30.",
+    "tools": [
+      "configure_interface_exact"
+    ],
+    "profile": {
+      "port": "Gi1/0/1",
+      "mode": "access",
+      "accessVlan": 30
+    }
+  },
+  {
+    "id": "trunk-port",
+    "fixture": "disconnected",
+    "selected": "sw0",
+    "prompt": "Configura a porta \"Gi1/0/24\" do equipamento selecionado como trunk com VLANs 10, 20 e VLAN nativa 10.",
+    "tools": [
+      "configure_interface_exact"
+    ],
+    "profile": {
+      "port": "Gi1/0/24",
+      "mode": "trunk",
+      "allowedVlans": [
+        10,
+        20
+      ],
+      "nativeVlan": 10
+    }
+  },
+  {
+    "id": "port-batch",
+    "fixture": "disconnected",
+    "selected": "sw0",
+    "prompt": "Configura a porta \"Gi1/0/1\" do equipamento selecionado como access na VLAN 30; Configura a porta \"Gi1/0/1\" do equipamento selecionado para 100 Mbps em full duplex; Verifica as ligações do equipamento selecionado.",
+    "tools": [
+      "configure_interface_exact",
+      "configure_interface_exact",
+      "verify_network"
+    ],
+    "profile": {
+      "port": "Gi1/0/1",
+      "accessVlan": 30,
+      "speed": 100,
+      "duplex": "full"
+    }
+  },
+  {
+    "id": "shutdown",
+    "fixture": "complete",
+    "selected": "sw0",
+    "prompt": "Desativa a porta \"Gi1/0/1\" do equipamento selecionado.",
+    "tools": [
+      "configure_interface_exact"
+    ],
+    "profile": {
+      "port": "Gi1/0/1",
+      "adminUp": false
+    }
+  },
+  {
+    "id": "exact-rj45",
+    "fixture": "disconnected",
+    "selected": "pc1",
+    "prompt": "Liga a porta \"Ethernet1\" de \"POSTO-01\" à porta \"F1\" de \"TOMADA-DUPLA-A\" com RJ45 Cat 6A.",
+    "tools": [
+      "connect_cable_exact"
+    ],
+    "newLinks": 1,
+    "category": "Cat 6A"
+  },
+  {
+    "id": "read-only",
+    "fixture": "complete",
+    "selected": "pc1",
+    "prompt": "Verifica as ligações do equipamento selecionado.",
+    "tools": [
+      "verify_network"
+    ],
+    "changed": false
+  },
+  {
+    "id": "invalid-vlan",
+    "fixture": "complete",
+    "selected": "sw0",
+    "prompt": "Configura a porta \"Gi1/0/1\" do equipamento selecionado como access na VLAN 999.",
+    "reject": true
+  },
+  {
+    "id": "occupied-port",
+    "fixture": "complete",
+    "selected": "pc1",
+    "prompt": "Liga a porta \"Ethernet1\" de \"POSTO-01\" à porta \"F1\" de \"TOMADA-DUPLA-A\" com RJ45 Cat 6.",
+    "reject": true
+  },
+  {
+    "id": "unknown-step",
+    "fixture": "disconnected",
+    "selected": "sw0",
+    "prompt": "Configura a porta \"Gi1/0/1\" do equipamento selecionado como access na VLAN 30; Faz magia.",
+    "reject": true
+  },
+  {
+    "id": "diagnose-missing-cable",
+    "fixture": "disconnected",
+    "selected": "pc1",
+    "prompt": "Diagnostica o equipamento selecionado.",
+    "tools": [
+      "diagnose_network"
+    ],
+    "changed": false,
+    "diagnosisCode": "no-data-cable"
+  },
+  {
+    "id": "diagnose-channel",
+    "fixture": "missing-horizontal",
+    "selected": "pc1",
+    "prompt": "Diagnostica o equipamento selecionado.",
+    "tools": [
+      "diagnose_network"
+    ],
+    "changed": false,
+    "diagnosisCode": "missing-channel"
+  },
+  {
+    "id": "diagnose-complete",
+    "fixture": "complete",
+    "selected": "pc1",
+    "prompt": "Diagnostica o equipamento selecionado.",
+    "tools": [
+      "diagnose_network"
+    ],
+    "changed": false,
+    "diagnosisCode": "on-site-check"
+  }
+]

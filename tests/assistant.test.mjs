@@ -45,3 +45,11 @@ test('model calls reuse the loaded model, avoid reasoning and do not duplicate t
  let sent;const handler=createChatHandler('http://ollama',{fetcher:async(url,options)=>{if(url.endsWith('/api/tags'))return Response.json({models:[{name:'qwen3:14b'}]});sent=JSON.parse(options.body);return Response.json({message:{content:'{"reply":"","actions":[]}'}});}});
  await call(handler,{model:'qwen3:14b',mode:'configure',messages:[{role:'user',content:'Cria um edifício.'}]});assert.equal(sent.keep_alive,'30m');assert.equal(sent.think,false);assert.equal(sent.options.num_predict,1200);assert.ok(!sent.messages[0].content.includes('oneOf'));assert.equal(sent.format.type,'object');
 });
+
+test('nearest-outlet inference sends the target context instead of the entire inventory',async()=>{
+ let sent;const handler=createChatHandler('http://ollama',{fetcher:async(url,options)=>{
+  if(url.endsWith('/api/tags'))return Response.json({models:[{name:'local'}]});sent=JSON.parse(options.body);return Response.json({message:{content:JSON.stringify({reply:'',actions:[{action:'connect_nearest_outlet',device:'device_1',cable:'cat6',complete:true}]})}});
+ }});
+ const result=await call(handler,{model:'local',mode:'configure',context:{devices:[{ref:'device_1',room:'room_1',floor:'floor_1',type:'Posto de trabalho',ports:[{ref:'device_1_port_1',free:true}]},{ref:'device_2',room:'room_2',floor:'floor_1',type:'Switch'}],rooms:[{ref:'room_1',floor:'floor_1'},{ref:'room_2',floor:'floor_1'}],floors:[{ref:'floor_1',site:'site_1'}],sites:[{ref:'site_1'}],selection:'device_1'},messages:[{role:'user',content:'Liga este posto à rede através do ponto de parede compatível mais próximo.'}]});
+ assert.equal(result.status,200);const contextMessage=sent.messages.find(m=>m.content.startsWith('Contexto documental anónimo'));const context=JSON.parse(contextMessage.content.slice(contextMessage.content.indexOf('{')));assert.deepEqual(context.devices.map(d=>d.ref),['device_1']);assert.equal(context.rooms.length,1);assert(sent.messages[0].content.includes('connect_nearest_outlet'));
+});

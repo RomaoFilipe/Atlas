@@ -1,0 +1,7 @@
+body:has(.auth-layout){min-height:100vh;background:radial-gradient(ellipse at 50% 25%,#18413b55,transparent 45%),#09121e}
+.auth-header{justify-content:space-between}.auth-header>a:last-child{font-size:13px}
+.auth-layout{max-width:540px;min-height:calc(100vh - 74px);display:grid;place-items:center;padding-top:38px;padding-bottom:60px}
+.auth-card{width:100%;padding:34px;border:1px solid #ffffff1a;border-radius:13px;background:linear-gradient(145deg,#142333,#0f1a27);box-shadow:0 25px 80px #0004}
+.auth-card h1{font-size:clamp(28px,6vw,38px);margin:13px 0 24px}.auth-card form label{display:block;margin:17px 0;color:#c7d4dd;font-size:13px}.auth-card input{margin-top:7px;min-height:45px}.auth-card small{display:block;margin-top:5px}.auth-card form button{width:100%;margin-top:10px;min-height:46px}
+.auth-switch,.auth-note{font-size:12px;color:#a3b2bf;line-height:1.6}.auth-switch{margin:20px 0 0}.auth-note{padding-top:12px;border-top:1px solid #ffffff12;margin-top:18px}.auth-error{padding:10px 12px;border:1px solid #e9888050;border-radius:7px;background:#532d302c;color:#ffc0b7;font-size:13px}
+@media(max-width:600px){.auth-header{padding-left:18px!important;padding-right:18px!important}.auth-card{padding:24px 20px}}

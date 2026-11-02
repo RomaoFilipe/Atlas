@@ -1,9 +1,10 @@
+import {prepareAgentPlan,verifyAgentPlan,agentReport} from './assistant-agent.js';
 import {initTaskPanel} from './assistant-task-panel.js';
 import {localConfiguration,configurationCommands} from './assistant-local-actions.js';
 import {projectAnswer} from './assistant-project.js';
 import {assistantRequestMode} from './assistant-intent.js';
 import {assistantGuides,relevantGuides,configurationSuggestions,quickGuideAnswer} from './assistant-knowledge.js';
-import {assistantContext,executeAssistantActions} from './assistant-actions.js';
+import {assistantContext} from './assistant-actions.js';
 import {privateText} from './assistant-privacy.js';
 export function initConfigurationChat(app){
 const icon=(name)=>({spark:'✦',close:'×',send:'↑',reset:'↺'})[name];
@@ -42,6 +43,43 @@ input.addEventListener('input',resize);
 input.addEventListener('keydown',event=>{if(event.key==='Enter'&&!event.shiftKey&&!event.isComposing){event.preventDefault();if(!busy&&!taskBusy)form.requestSubmit();}});
 clear.onclick=()=>{if(busy||taskBusy)return;messages=[];log.replaceChildren();welcome.hidden=false;input.value='';resize();status.textContent='';input.focus();};
 panel.querySelectorAll('[data-prompt]').forEach(button=>button.onclick=()=>{input.value=button.dataset.prompt;resize();input.focus();});
+function paintDiagnosis(diagnosis){
+ const root=document.createElement('details');root.className='chat-diagnosis';root.setAttribute('aria-label','Diagnóstico explicado');root.open=true;const summary=document.createElement('summary');summary.textContent='Diagnóstico · '+diagnosis.name;root.append(summary);
+ const conclusion=document.createElement('p');conclusion.textContent=diagnosis.conclusion;root.append(conclusion);
+ if(diagnosis.reachedSwitch&&diagnosis.path.length>1){const route=document.createElement('p');route.textContent='Percurso documentado: '+diagnosis.path.map(id=>app.get().project.devices.find(d=>d.id===id)?.name||'?').join(' → ');root.append(route);}
+ for(const finding of diagnosis.findings.slice(0,12)){
+  const item=document.createElement('article'),title=document.createElement('strong'),evidence=document.createElement('p'),next=document.createElement('p');item.dataset.diagnosisKind=finding.kind;title.textContent={fault:'Incompatibilidade documentada',gap:'Falta de registo',confirm:'Por confirmar'}[finding.kind];evidence.textContent=finding.evidence;next.textContent='Próximo passo: '+finding.next;item.append(title,evidence,next);
+  const target=finding.target,element=app.get().project[target.type]?.find(x=>x.id===target.id);if(element){const button=document.createElement('button');button.type='button';button.textContent='Abrir '+(element.name||element.label||target.id)+(finding.port?' / '+finding.port:'');button.onclick=()=>{if(app.get().project[target.type]?.some(x=>x.id===target.id))app.reveal(target);else status.textContent='O elemento mudou. Repete o diagnóstico.';};item.append(button);}root.append(item);
+ }
+ if(diagnosis.findings.length>12){const more=document.createElement('p');more.textContent='Mais '+(diagnosis.findings.length-12)+' observações. Consulte a Verificação do projeto.';root.append(more);}
+ const limit=document.createElement('small');limit.textContent=diagnosis.limit;root.append(limit);log.append(root);root.scrollIntoView({block:'start'});
+}
+function paintAgentReport(result){
+ const report=agentReport(result),root=document.createElement('details');root.className='chat-agent-report';root.setAttribute('aria-label','Plano e verificação do agente');const summary=document.createElement('summary');summary.textContent='Agente · '+report.steps.length+' etapa(s) · '+report.warnings.length+' observação(ões)';root.append(summary);
+ for(const tool of report.tools){const p=document.createElement('p');p.textContent=tool.summary;root.append(p);}const checks=document.createElement('ul');for(const text of report.checks){const li=document.createElement('li');li.textContent='✓ '+text;checks.append(li);}root.append(checks);
+ if(report.warnings.length){const heading=document.createElement('p');heading.textContent='Por confirmar nos registos / no local:';root.append(heading);const list=document.createElement('ul');for(const text of report.warnings.slice(0,20)){const li=document.createElement('li');li.textContent=text;list.append(li);}root.append(list);if(report.warnings.length>20){const p=document.createElement('p');p.textContent='Mais '+(report.warnings.length-20)+' observações na Verificação do projeto.';root.append(p);}}
+ log.append(root);for(const diagnosis of report.diagnoses||[])paintDiagnosis(diagnosis);
+}
+function paintPlanReview(result,projectAtPlan,generationAtPlan,onApplied){
+ const root=document.createElement('section');root.className='chat-plan-review';root.setAttribute('aria-label','Revisão antes de aplicar');
+ const title=document.createElement('strong');title.textContent='Rever alterações antes de aplicar';root.append(title);
+ const list=document.createElement('ul');for(const text of result.descriptions){const item=document.createElement('li');item.textContent=text;list.append(item);}root.append(list);
+ const affected=new Map();for(const link of result.expectedLinks||[])for(const id of [link.a,link.b]){const device=result.project.devices.find(d=>d.id===id);if(device)affected.set(id,device.name);}
+ for(const entry of result.expectedInterfaces||[]){const device=result.project.devices.find(d=>d.id===entry.device);if(device)affected.set(device.id,device.name+' · '+entry.port);}
+ if(affected.size){const note=document.createElement('p');note.textContent='Equipamentos afetados: '+[...affected.values()].join(', ');root.append(note);}
+ const actions=document.createElement('div');actions.className='chat-plan-actions';const apply=document.createElement('button');apply.type='button';apply.textContent='Aplicar alterações';apply.className='chat-plan-apply';const cancel=document.createElement('button');cancel.type='button';cancel.textContent='Cancelar';cancel.className='chat-plan-cancel';actions.append(apply,cancel);root.append(actions);log.append(root);root.scrollIntoView({block:'start'});
+ const finish=()=>{apply.disabled=true;cancel.disabled=true;};cancel.onclick=()=>{finish();root.dataset.result='cancelled';status.textContent='Plano cancelado · nenhuma alteração aplicada.';};
+ apply.onclick=async()=>{if(apply.disabled)return;finish();try{
+  if(!app.get().ready||app.get().conflict)throw Error('Resolve o conflito de gravação antes de aplicar.');
+  if(app.get().generation!==generationAtPlan||JSON.stringify(app.get().project)!==projectAtPlan)throw Error('O projeto mudou desde a preparação. Envia o pedido novamente para rever um plano atualizado.');
+  verifyAgentPlan(result.project,result);
+  if(!app.change(project=>{for(const key of Object.keys(project))delete project[key];Object.assign(project,result.project);},'IA · configurar o projeto'))throw Error('Não foi possível aplicar a configuração.');
+  onApplied();verifyAgentPlan(app.get().project,result);const receipt=app.get().generation;
+  const answer='Configuração aplicada no Atlas:\n'+result.descriptions.map(text=>'• '+text).join('\n');append('assistant',answer);
+  const undo=document.createElement('button');undo.type='button';undo.className='chat-undo-action';undo.textContent='↶ Desfazer esta configuração';undo.onclick=()=>{if(app.get().generation!==receipt){status.textContent='O projeto mudou entretanto. Usa o histórico para rever ou recuperar esta configuração.';undo.disabled=true;return;}app.undo();undo.disabled=true;status.textContent='Configuração anulada. A gravação é automática.';};log.append(undo);
+  app.reveal(result.focus);const saved=await app.save();status.textContent=saved?'Configuração guardada.':'Aplicado no editor · gravação automática pendente. Verifica o estado de gravação do projeto.';root.dataset.result='applied';
+ }catch(error){status.textContent=error.message;root.dataset.result='stale';}};
+}
 form.onsubmit=async event=>{
  event.preventDefault();if(busy||taskBusy||!input.value.trim())return;
  if(!app.get().ready||app.get().conflict){status.textContent='Aguarda o carregamento ou resolve o conflito de gravação antes de usar a IA.';return;}
@@ -49,7 +87,7 @@ form.onsubmit=async event=>{
  let applied=false;const started=performance.now(),waiting=setInterval(()=>{const seconds=Math.floor((performance.now()-started)/1000);status.textContent=(requestMode==='configure'?'A preparar a configuração':'A aguardar a IA')+' · '+seconds+' s'+(seconds>=15?' · o modelo local ainda está a processar':'');},1000);
  try{
  let local=null;
- if(requestMode==='configure')local=localConfiguration(content,snapshot);else if(assistantRequestMode('configure',content)==='configure'){let recognized=false;try{recognized=!!localConfiguration(content,snapshot);}catch{recognized=true;}if(recognized)local={reply:'Este é um pedido para alterar o projeto. Escolhe Configurar por mim e envia a mensagem novamente. O pedido ficou na caixa de texto; nenhuma alteração foi aplicada.',source:'command-hint',mode:'advice',sources:[]};}
+ if(requestMode==='configure')local=localConfiguration(content,snapshot);else if(assistantRequestMode('configure',content)==='configure'){let recognized=false,parsed;try{parsed=localConfiguration(content,snapshot);recognized=!!parsed;}catch{recognized=true;}if(parsed?.actions?.length&&parsed.actions.every(a=>['verify_network','diagnose_network'].includes(a.action))){const result=prepareAgentPlan(app.get().project,parsed.actions,snapshot);paintAgentReport(result);local={reply:result.descriptions.join('\n'),source:'local-verification',mode:'advice',sources:[]};}else if(recognized)local={reply:'Este é um pedido para alterar o projeto. Escolhe Configurar por mim e envia a mensagem novamente. O pedido ficou na caixa de texto; nenhuma alteração foi aplicada.',source:'command-hint',mode:'advice',sources:[]};}
  const quick=projectAnswer(app.get().project,app.get(),content)||quickGuideAnswer(content)||local;
  let data;
  if(quick){data=quick;}else{
@@ -62,19 +100,16 @@ form.onsubmit=async event=>{
  let answer=snapshot.restore(data.reply||'')||'O pedido não produziu alterações.';
  if(requestMode==='configure'&&data.actions?.length){
  if(app.get().conflict||!app.get().ready)throw Error('A gravação tem um conflito. Nada foi aplicado pela IA.');
- const result=executeAssistantActions(app.get().project,data.actions,snapshot);
+ status.textContent='A consultar o projeto e validar o plano…';const result=prepareAgentPlan(app.get().project,data.actions,snapshot);paintAgentReport(result);
  if(!result.changed){answer='Projeto revisto:\n'+result.descriptions.map(text=>'• '+text).join('\n');append('assistant',answer);status.textContent='Sem alterações necessárias · verificação concluída.';}else{
- if(!app.change(project=>{for(const key of Object.keys(project))delete project[key];Object.assign(project,result.project);},'IA · configurar o projeto'))throw Error('Não foi possível aplicar a configuração.');
- applied=true;
- const receipt=app.get().generation;
- answer='Configuração aplicada no Atlas:\n'+result.descriptions.map(text=>'• '+text).join('\n');append('assistant',answer);
- const undo=document.createElement('button');undo.type='button';undo.className='chat-undo-action';undo.textContent='↶ Desfazer esta configuração';undo.onclick=()=>{if(app.get().generation!==receipt){status.textContent='O projeto mudou entretanto. Usa o histórico para rever ou recuperar esta configuração.';undo.disabled=true;return;}app.undo();undo.disabled=true;status.textContent='Configuração anulada. A gravação é automática.';};log.append(undo);
- app.reveal(result.focus);const saved=await app.save();status.textContent=saved?'Configuração guardada.': 'Aplicado no editor · gravação automática pendente. Verifica o estado de gravação do projeto.';}
- }else{append('assistant',answer);status.textContent=data.source==='command-hint'?'Escolhe Configurar por mim para aplicar.':data.source==='project'?'Consulta local · registos do projeto':data.source==='documentation'?'Resposta imediata · guia do Atlas':requestMode==='configure'?'Nenhuma alteração foi aplicada.':'';}
+  paintPlanReview(result,JSON.stringify(app.get().project),app.get().generation,()=>{applied=true;});status.textContent='Revisa o plano e escolhe Aplicar alterações ou Cancelar.';
+ }
+ }else{if(!data.diagnosis)append('assistant',answer);status.textContent=data.source==='diagnosis'?'Diagnóstico local · nenhuma alteração.':data.source==='command-hint'?'Escolhe Configurar por mim para aplicar.':data.source==='project'?'Consulta local · registos do projeto':data.source==='documentation'?'Resposta imediata · guia do Atlas':requestMode==='configure'?'Nenhuma alteração foi aplicada.':'';}
+ if(data.diagnosis)paintDiagnosis(data.diagnosis);
  if(data.source==='project'&&Array.isArray(data.targets)&&data.targets.length){const targets=document.createElement('div');targets.className='chat-project-targets';targets.setAttribute('aria-label','Resultados no projeto');for(const target of data.targets){const button=document.createElement('button');button.type='button';button.textContent=target.label;button.onclick=()=>{if(!app.get().project[target.type]?.some(item=>item.id===target.id)){status.textContent='Este elemento já não existe. Repete a consulta.';return;}app.reveal(target);};targets.append(button);}log.append(targets);}
  if(Array.isArray(data.sources)&&data.sources.length){const sources=document.createElement('div');sources.className='chat-sources';sources.setAttribute('aria-label','Guias consultados');sources.append(document.createTextNode('Guias consultados: '));for(const source of data.sources){const guide=assistantGuides.find(g=>g.id===source.id);if(!guide)continue;const button=document.createElement('button');button.type='button';button.textContent=guide.title;button.onclick=()=>{search.value=guide.title;showGuides();help.open=true;const article=articles.querySelector('[data-guide-id="'+guide.id+'"]');if(article){article.open=true;article.querySelector('summary').focus();}};sources.append(button);}log.append(sources);}
- if(!['project','local-command','command-hint'].includes(data.source))messages=[...messages,{role:'user',content},{role:'assistant',content:answer}].slice(-10);if(data.source!=='command-hint')input.value='';resize();
- }catch(error){clearInterval(waiting);const reason=error?.name==='TimeoutError'?'O modelo demorou demasiado a responder. Tenta dividir o pedido em passos mais pequenos.':error?.message||'Não consegui responder agora. Tenta novamente.';status.textContent=reason;append('assistant',(applied?'As alterações foram aplicadas no editor; confirma a gravação. ':'Não apliquei alterações. ')+reason);}
+ if(!['project','diagnosis','local-verification','local-command','command-hint'].includes(data.source))messages=[...messages,{role:'user',content},{role:'assistant',content:answer}].slice(-10);if(data.source!=='command-hint')input.value='';resize();
+ }catch(error){clearInterval(waiting);const reason=error?.name==='TimeoutError'?'O modelo demorou demasiado a responder. Tenta dividir o pedido em passos mais pequenos.':error instanceof TypeError&&/fetch|network|load failed/i.test(error.message)?'Não foi possível ligar ao servidor do Atlas. Confirma que o Atlas está iniciado e que tens ligação, e volta a enviar o pedido. A mensagem foi mantida na caixa de texto.':error?.message||'Não consegui responder agora. Tenta novamente.';status.textContent=reason;append('assistant',(applied?'As alterações foram aplicadas no editor; confirma a gravação. ':'Não apliquei alterações. ')+reason);}
  finally{clearInterval(waiting);const duration=document.createElement('small');duration.className='chat-response-time';duration.textContent='Tempo do pedido: '+((performance.now()-started)/1000).toFixed(1)+' s';log.append(duration);busy=false;updateControls();panel.removeAttribute('aria-busy');if(!panel.hidden)input.focus({preventScroll:true});}
 };
 return{open:()=>setOpen(true)};

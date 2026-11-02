@@ -167,3 +167,61 @@ O servidor local foi iniciado a pedido do utilizador em http://localhost:3000, c
 - Ajuda estática atualizada para documentação 2026-10-31.3. Navegação secundária agrupada em Ferramentas. Guia operacional e limites em `docs/service-workflows.md`.
 - Validação final: 286 testes unitários/API/runtime, 34 percursos Chromium e 29 casos de avaliação determinística aprovados. Inclui separadores de clientes independentes, checklists com texto/fotografia, recorrência sem duplicação, preferências, aceitação/correções, mapeamento e correção, offline real com fotografia, reabertura, duas revisões concorrentes e recusa após retirada de permissão. Schema Drizzle sem diferenças. Vistas desktop e 390 px revistas com dados fictícios.
 - Não foram criadas credenciais de clientes reais, enviados emails ou realizadas sessões com participantes humanos. Não foi feito deploy externo.
+
+## Reposição da identidade visual — 1 de novembro de 2026
+
+- Reposto o editor original na raiz e após login, incluindo o percurso original dos QR. O resumo Hoje mantém-se como ferramenta opcional no menu Projeto.
+- As páginas novas reutilizam a tipografia e o tema escuro do Atlas, com painéis, campos e acentos da identidade existente. Retirado o tema branco/verde introduzido sem pedido do utilizador. Ícone e cores do manifesto alinhados com o tema original; documentos de impressão conservam o fundo de papel.
+- Atalhos de conta, resumo e inventário movidos da pesquisa do cabeçalho para o menu Projeto, corrigindo sobreposições sem retirar as funcionalidades.
+- A versão dos assets passa a integrar o script do Service Worker para atualizar também as folhas de estilo em cache após alterações visuais.
+- Validação: 286 testes aprovados, 16 percursos de browser aprovados e repetição final de 10 percursos após os ajustes do menu. Editor e resumo revistos visualmente; cabeçalho sem sobreposições. Dados e funcionalidades preservados.
+
+### Detalhe visual dos equipamentos 3D
+
+- Materiais procedurais de metal, plástico e madeira, com texturas partilhadas e libertadas ao reconstruir a cena.
+- Bastidores com ventilação, parafusos e acabamento nos painéis; postos com ecrãs, teclados e grelhas mais detalhados; pequenos detalhes em portáteis, câmaras, impressoras e pontos Wi-Fi.
+- Mantidos o tema, a organização do editor e os dados e pontos de ligação dos equipamentos. O modo simplificado para mapas grandes continua ativo.
+- Validação: 286 testes unitários e 5 testes de navegador passaram; inspeção visual do bastidor e do posto de trabalho e renderização de nove tipos sem erros JavaScript.
+
+### Configurações de interfaces e ligações mais próximas da instalação real
+
+- Configuração persistente por interface: estado administrativo, meio, velocidades suportadas/fixa, duplex, access/trunk, VLAN nativa/permitidas, PoE e orçamento do equipamento.
+- Diagnóstico partilhado entre revisão do cabo, ficha e auditoria: canal passivo completo, comprimentos, capacidades desconhecidas, incompatibilidades e validação IPv4 adicional.
+- Formulário conserva rascunhos de várias interfaces; servidor valida os novos campos e impede eliminar VLANs referidas. Projetos anteriores não exigem migração.
+- Portas em shutdown identificadas na ficha e na vista 3D; interfaces incluídas no dossier e novo guia no assistente. Mantido o tema e a organização existentes.
+- Regras, fontes técnicas e limites documentados em `docs/realistic-network.md`.
+- Validação concluída: 300 testes unitários e 19 testes de navegador passaram, incluindo rascunhos de múltiplas portas, persistência após recarregar, diagnóstico em cadeia, edição de comprimentos, rejeição de dados inválidos no servidor, contas, assistente e ecrã estreito. Inspeção visual em localhost sem erros JavaScript e sem alterar a revisão do projeto do utilizador.
+
+### Cabos e conectores no bastidor 3D
+
+- Cabos de cobre, fibra e alimentação com volume, curvas suaves e percurso lateral. As pontas encaixam nas coordenadas e orientação das portas registadas, incluindo a traseira.
+- Fichas RJ45 com contactos, patilha e proteção; terminação de fibra de estilo LC duplo; alimentação com ficha própria. Na traseira dos elementos passivos de cobre, representação de terminação permanente, sem impor uma ficha RJ45.
+- Cabos para equipamentos fora do bastidor mostram a continuação lateral; só o extremo visível recebe uma ficha. Seleção, destaque e abertura da ligação continuam associados aos IDs reais.
+- Geometria ilustrativa: não altera comprimentos medidos, categorias, especificações óticas nem os dados do projeto. Contactos e molduras usam instâncias para reduzir o custo de desenho. Vistas gerais conservam linhas leves; o detalhe aplica-se ao bastidor 3D.
+- Validação: 305 testes unitários e 7 de navegador, incluindo orientação das tomadas, início dos cabos após a proteção das fichas, percursos frente/traseira e continuação para fora do bastidor.
+
+### Ligação manual por tipo de cabo e correção do assistente
+
+- Barra de cabos no mapa: RJ45 Cat 5e/6/6A, fibra OS2/OM3 e alimentação; duas portas criam um cabo com validação atómica, gravação automática e Anular. Esc cancela a ligação pendente.
+- Frente/traseira identificadas nos elementos passivos; portas ocupadas e incompatíveis dão avisos sem substituir ligações. A pesquisa permite escolher a outra ponta noutro equipamento/vista. Leitores não podem ativar a ferramenta.
+- Planta com pontos de ligação, pequenas fichas e pré-visualização; geometria acompanha posição/rotação. Vista 3D com portas dos postos e traseira das tomadas e cabos volumétricos quando as duas portas estão representadas.
+- Corrigido o pedido de dois postos e impressora sem telefones/tomadas: interpretação local integral e proteção contra substituição por computadores genéricos. Caso corrigido: 1 ms; inferência real de criação de espaços: passou em 40 s. Evidência resumida em `docs/assistant-cabling-evaluation.json`.
+- Validação: 314 testes unitários e 27 cenários de navegador passaram; incluem criação PC–tomada, alimentação PC–PDU, persistência, Anular, compatibilidade, seleção frente/traseira, permissões, assistente e ecrã estreito.
+- Utilização e limites em `docs/manual-cabling.md`. Mantidos o tema e a organização existentes.
+
+### Agente com ferramentas de interfaces e cablagem
+
+- Ferramentas estruturadas para ligar pela tomada compatível mais próxima, criar cabos por portas, configurar interfaces e verificar circuitos. A procura reutiliza cabos/canais existentes, respeita propostas reservadas e não cria material para fazer o pedido caber.
+- Preparação numa cópia, verificação das condições finais antes/depois de aplicar, relatório no chat, gravação e Desfazer pelo editor existente. Lotes inválidos não são aplicados parcialmente; pedidos de verificação não autorizam alterações.
+- Configurações literais de portas, VLANs, velocidades, meio e PoE são interpretadas localmente e protegidas contra substituição pelo modelo. Contexto do modelo inclui apenas referências e capacidades documentadas.
+- Para pedidos pela tomada mais próxima, a inferência recebe apenas o alvo; a ferramenta consulta a infraestrutura localmente. O primeiro teste real excedeu 120 s; o reteste com contexto reduzido passou em 17 s. Evidência e limites em `docs/agent-model-evaluation.json`.
+- Conjunto inicial de 12 exemplos sintéticos revistos em `docs/agent-examples.json`, com avaliação executável por `npm run eval:agent`. São exemplos/testes, não treino automático de pesos nem recolha de conversas privadas.
+- Validação: 329 testes unitários passaram; fluxos de navegador cobrem novas ferramentas, persistência, repetição, ações inválidas, modo de conversa, permissões, gravação, retoma existente e Desfazer.
+- Documentação em `docs/network-agent.md`; propostas futuras priorizadas em `docs/agent-roadmap.md`.
+
+### Diagnóstico explicado do agente
+
+- Perguntas locais como «Porque é que este PC não tem rede?» mostram evidência, próximo passo e acesso ao equipamento/cabo envolvido. Funcionam nos dois modos do chat sem chamadas ao modelo para interpretar estes pedidos.
+- Distinção entre incompatibilidade configurada, falta de registo e confirmação necessária. Percurso por canais F/R e uplink do mini-switch, sem seguir portas de outros clientes.
+- Diagnóstico sem alterações: não ativa interfaces, não cria cabos e não promete DHCP/DNS/routing/firewall/Internet. Foram acrescentados exemplos, guia de utilização e ferramenta estruturada `diagnose_network`.
+- Validação: 339 testes unitários e 18 testes de navegador passaram; 15 cenários de avaliação do agente passaram. Incluem canais interrompidos, VLAN/shutdown, ausência de registos, interfaces virtuais, nomes ambíguos, acesso aos elementos e utilização no telemóvel.

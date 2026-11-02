@@ -31,7 +31,7 @@ test('a simple configuration works without the model and persists without creati
  await page.route('**/api/assistant/chat',route=>route.fulfill({status:503,json:{error:'Ollama indisponível'}}));
  await page.goto('/editor.html');await expect(page.locator('#saveBadge')).toBeVisible();await page.locator('#openConfigurationChat').click();await page.getByRole('button',{name:'Configurar por mim',exact:true}).click();
  await page.locator('#configurationChatPrompt').fill('Cria um edifício chamado Sede Rápida sem pisos nem salas.');await page.getByRole('button',{name:'Enviar mensagem',exact:true}).click();
- await expect(page.locator('.chat-message-assistant')).toContainText('Configuração aplicada');await expect(page.locator('[data-status]')).toContainText('guardada');
+ await page.getByRole('button',{name:'Aplicar alterações',exact:true}).click();await expect(page.locator('.chat-message-assistant')).toContainText('Configuração aplicada');await expect(page.locator('[data-status]')).toContainText('guardada');
  const {project}=await (await page.request.get('/api/project')).json(),site=project.sites.find(s=>s.name==='Sede Rápida');expect(site).toBeTruthy();expect(project.floors.some(f=>f.site===site.id)).toBe(false);
  await page.getByRole('button',{name:'Desfazer esta configuração',exact:false}).click();await expect(page.locator('[data-status]')).toContainText('anulada');
 });

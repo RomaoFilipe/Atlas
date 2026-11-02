@@ -1,0 +1,187 @@
+{
+  "date": "2026-11-01T18:26:09.570Z",
+  "scope": "Exemplos sintéticos revistos, executados em memória. Sem chamadas ao modelo e sem alterações à instalação.",
+  "cases": [
+    {
+      "id": "nearest-complete",
+      "latencyMs": 17,
+      "passed": true,
+      "checks": {
+        "expectedAcceptance": true,
+        "verified": true,
+        "tools": true,
+        "links": true,
+        "route": true,
+        "inputUnchanged": true
+      }
+    },
+    {
+      "id": "reuse-horizontal",
+      "latencyMs": 5,
+      "passed": true,
+      "checks": {
+        "expectedAcceptance": true,
+        "verified": true,
+        "tools": true,
+        "links": true,
+        "inputUnchanged": true
+      }
+    },
+    {
+      "id": "already-complete",
+      "latencyMs": 3,
+      "passed": true,
+      "checks": {
+        "expectedAcceptance": true,
+        "verified": true,
+        "tools": true,
+        "links": true,
+        "changed": true,
+        "inputUnchanged": true
+      }
+    },
+    {
+      "id": "access-port",
+      "latencyMs": 3,
+      "passed": true,
+      "checks": {
+        "expectedAcceptance": true,
+        "verified": true,
+        "tools": true,
+        "profile": true,
+        "inputUnchanged": true
+      }
+    },
+    {
+      "id": "trunk-port",
+      "latencyMs": 3,
+      "passed": true,
+      "checks": {
+        "expectedAcceptance": true,
+        "verified": true,
+        "tools": true,
+        "profile": true,
+        "inputUnchanged": true
+      }
+    },
+    {
+      "id": "port-batch",
+      "latencyMs": 4,
+      "passed": true,
+      "checks": {
+        "expectedAcceptance": true,
+        "verified": true,
+        "tools": true,
+        "profile": true,
+        "inputUnchanged": true
+      }
+    },
+    {
+      "id": "shutdown",
+      "latencyMs": 2,
+      "passed": true,
+      "checks": {
+        "expectedAcceptance": true,
+        "verified": true,
+        "tools": true,
+        "profile": true,
+        "inputUnchanged": true
+      }
+    },
+    {
+      "id": "exact-rj45",
+      "latencyMs": 3,
+      "passed": true,
+      "checks": {
+        "expectedAcceptance": true,
+        "verified": true,
+        "tools": true,
+        "links": true,
+        "category": true,
+        "inputUnchanged": true
+      }
+    },
+    {
+      "id": "read-only",
+      "latencyMs": 2,
+      "passed": true,
+      "checks": {
+        "expectedAcceptance": true,
+        "verified": true,
+        "tools": true,
+        "changed": true,
+        "inputUnchanged": true
+      }
+    },
+    {
+      "id": "invalid-vlan",
+      "latencyMs": 1,
+      "passed": true,
+      "checks": {
+        "expectedRejection": true,
+        "inputUnchanged": true
+      },
+      "error": "VLAN de interface inexistente."
+    },
+    {
+      "id": "occupied-port",
+      "latencyMs": 1,
+      "passed": true,
+      "checks": {
+        "expectedRejection": true,
+        "inputUnchanged": true
+      },
+      "error": "Porta ocupada pelo cabo POSTO-1."
+    },
+    {
+      "id": "unknown-step",
+      "latencyMs": 6,
+      "passed": true,
+      "checks": {
+        "expectedRejection": true,
+        "inputUnchanged": true
+      },
+      "error": "Um dos passos não corresponde a um comando suportado. Nada foi aplicado. Consulta os exemplos do chat."
+    },
+    {
+      "id": "diagnose-missing-cable",
+      "latencyMs": 3,
+      "passed": true,
+      "checks": {
+        "expectedAcceptance": true,
+        "verified": true,
+        "tools": true,
+        "changed": true,
+        "diagnosis": true,
+        "inputUnchanged": true
+      }
+    },
+    {
+      "id": "diagnose-channel",
+      "latencyMs": 2,
+      "passed": true,
+      "checks": {
+        "expectedAcceptance": true,
+        "verified": true,
+        "tools": true,
+        "changed": true,
+        "diagnosis": true,
+        "inputUnchanged": true
+      }
+    },
+    {
+      "id": "diagnose-complete",
+      "latencyMs": 2,
+      "passed": true,
+      "checks": {
+        "expectedAcceptance": true,
+        "verified": true,
+        "tools": true,
+        "changed": true,
+        "diagnosis": true,
+        "inputUnchanged": true
+      }
+    }
+  ],
+  "passed": true
+}

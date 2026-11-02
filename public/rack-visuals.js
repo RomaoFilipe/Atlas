@@ -37,5 +37,18 @@ export function rackEquipment({box,g,d,h,detail}){
  for(let i=0;i<count;i++){const x=-.43+(i%cols)*(.86/Math.max(cols-1,1)),y=((rows-1)/2-Math.floor(i/cols))*Math.min(.045,h*.7/Math.max(rows,1));box(Math.min(.084,.74/cols),Math.min(.053,h*.65/rows),.015,0x0b1722,x,y,.532,g);}
  }
  // Model markings are illustrative; network ports retain their real configured names.
- if(detail){const tex=canvasTexture(768,96,ctx=>{ctx.fillStyle='#d7e5ed';ctx.font='600 34px Arial';ctx.fillText(type.toUpperCase(),20,44);ctx.font='24px Arial';ctx.fillStyle='#8bb7c9';ctx.fillText(d.model||'MODELO GENÉRICO',20,80);});const marking=plate(g,tex,.7,.22,0,height/2+.003,0);marking.rotation.x=-Math.PI/2;}
+ if(detail){
+ const tex=canvasTexture(768,384,(ctx,w,h)=>{
+  ctx.fillStyle='#c4d4df';ctx.font='600 24px Arial';ctx.fillText(type.toUpperCase(),40,54,650);ctx.font='19px Arial';ctx.fillStyle='#8eacbf';ctx.fillText(d.model||'MODELO GENÉRICO',40,86,650);
+  // Slotted ventilation and recessed fasteners, printed onto the chassis lid.
+  for(let row=0;row<8;row++)for(let col=0;col<20;col++){ctx.fillStyle='#0b1520';ctx.fillRect(55+col*33,132+row*21,22,6);ctx.fillStyle='#557080';ctx.fillRect(55+col*33,138+row*21,22,1);}
+  for(const x of [16,w-16])for(const y of [16,h-16]){ctx.fillStyle='#8398a6';ctx.beginPath();ctx.arc(x,y,6,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#182734';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x-3,y);ctx.lineTo(x+3,y);ctx.moveTo(x,y-3);ctx.lineTo(x,y+3);ctx.stroke();}
+ });const marking=plate(g,tex,.98,.83,0,height/2+.003,0);marking.rotation.x=-Math.PI/2;
+ // Fine front-panel seams remain behind the actual clickable connectors.
+ const panel=canvasTexture(1024,128,(ctx,w,h)=>{
+  const sheen=ctx.createLinearGradient(0,0,0,h);sheen.addColorStop(0,'rgba(224,239,247,.2)');sheen.addColorStop(.2,'rgba(224,239,247,0)');sheen.addColorStop(1,'rgba(0,0,0,.35)');ctx.fillStyle=sheen;ctx.fillRect(0,0,w,h);
+  ctx.strokeStyle='#9aabb9';ctx.lineWidth=2;for(const x of [18,w-18])for(const y of [24,h-24]){ctx.beginPath();ctx.arc(x,y,7,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.moveTo(x-4,y);ctx.lineTo(x+4,y);ctx.stroke();}
+ });plate(g,panel,1.05,height*.92,0,0,.519);
+ }
+
 }

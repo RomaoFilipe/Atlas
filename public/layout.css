@@ -319,3 +319,45 @@ button:focus-visible,summary:focus-visible,input:focus-visible,select:focus-visi
 .chat-task-panel{flex-shrink:0;max-height:min(220px,30vh);overflow:auto;margin:6px 12px;padding:10px;border:1px solid #b5e8d84d;border-radius:10px;font-size:12px}.chat-task-panel p{margin:6px 0;line-height:1.4}.chat-task-panel progress{width:100%}.chat-task-panel ol{padding-left:20px;margin:6px 0}.chat-task-panel [aria-current=step]{font-weight:bold;color:#b5e8d8}.chat-task-controls{display:flex;gap:5px;flex-wrap:wrap}.chat-task-controls button{min-height:36px;font-size:11px}.chat-task-panel:not([hidden])~.chat-welcome{display:none}
 
 .conflict-notice{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:1000;display:flex;gap:12px;align-items:center;background:#fff5df;color:#513b14;border:1px solid #d9a538;border-radius:12px;padding:14px;width:min(850px,calc(100% - 24px));flex-wrap:wrap;box-shadow:0 6px 30px #0002}.conflict-notice[hidden]{display:none}#conflictReview{width:min(900px,calc(100% - 24px));max-height:90vh;overflow:auto}#conflictReview fieldset{border:1px solid #abbfbb;border-radius:8px;padding:12px;margin:14px 0}.conflict-columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.conflict-columns pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:220px;overflow:auto}.conflict-columns input{width:auto}@media(max-width:600px){.conflict-columns{grid-template-columns:1fr}}
+
+#projectMenu .workspace-service-link{display:block;padding:12px;color:var(--text);font-size:14px;text-decoration:none;border-radius:5px}#projectMenu .workspace-service-link:hover{background:#253e54}
+
+/* Circuit diagnostics use the editor's existing dark surfaces. */
+.circuit-diagnostic{padding:12px;border:1px solid var(--border);border-left:3px solid var(--mint);border-radius:6px;background:#0c1926;margin:12px 0;overflow-wrap:anywhere}
+.circuit-diagnostic[data-circuit-status=blocked]{border-left-color:#ed9587}
+.circuit-diagnostic[data-circuit-status=review]{border-left-color:#e4ba77}
+.circuit-diagnostic h4{margin:0 0 8px;font-size:14px}
+.circuit-diagnostic p,.circuit-diagnostic li{font-size:12px;line-height:1.5}
+.circuit-diagnostic ul{padding-left:18px;margin:8px 0}
+.circuit-diagnostic small{display:block;color:var(--muted);line-height:1.5}
+#interfaceFields>[data-interface-access],#interfaceFields>[data-interface-trunk],#interfaceFields>[data-interface-poe]{min-width:0}
+
+#cablePalette{border-bottom:1px solid var(--border);padding:12px 16px;background:#0d1b29}
+.cable-palette-head,.cable-palette-types{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.cable-palette-head{margin-bottom:8px}.cable-palette-head span{color:var(--muted);font-size:12px;flex:1}
+.cable-palette-types button{display:flex;align-items:center;gap:7px;font-size:12px;padding:8px 10px}
+.cable-palette-types button[aria-pressed=true],.cable-tool-ports button[aria-pressed=true]{border-color:var(--mint);background:#173d37}
+.cable-palette-types i{width:23px;height:5px;display:inline-block;border-radius:3px}
+#cablePalette [data-cable-device] small{display:block;color:var(--muted);margin-top:6px}
+.cable-tool-ports{display:flex;flex-wrap:wrap;gap:6px;max-height:180px;overflow:auto;margin:10px 0}
+.cable-tool-ports button{min-width:80px;max-width:180px;flex:0 1 auto;text-align:left}
+.cable-tool-ports small{display:block;font-size:11px;color:var(--muted);margin-top:4px}
+.cable-tool-ports [aria-disabled=true]{opacity:.6;border-style:dashed}
+@media(max-width:600px){#cablePalette{padding:10px}.cable-palette-head span{flex-basis:65%}.cable-palette-types button{flex:1 1 110px}}
+#cablePalette button{background:#172b3c;border:1px solid #3a5266;color:var(--text);border-radius:5px}
+#cablePalette button:hover{background:#203b4f}
+#cablePalette button[aria-pressed=true]{background:#173d37;border-color:var(--mint)}
+.chat-agent-report{border:1px solid var(--border);border-radius:7px;padding:10px 12px;margin:10px 0;background:#102231;font-size:12px;overflow-wrap:anywhere}
+.chat-agent-report summary{cursor:pointer;color:var(--mint)}
+.chat-agent-report ul{padding-left:18px;line-height:1.6}
+.chat-plan-review{border:1px solid #b5e8d84d;border-radius:8px;padding:12px;margin:12px 0;background:#12251f;font-size:12px;overflow-wrap:anywhere}
+.chat-plan-review>strong{color:var(--mint)}.chat-plan-review ul{padding-left:18px;line-height:1.55}.chat-plan-review p{color:var(--muted);line-height:1.5}
+.chat-plan-actions{display:flex;gap:8px;flex-wrap:wrap}.chat-plan-actions button{min-height:34px;border-radius:6px;padding:7px 11px;font:inherit}
+.chat-plan-apply{border:1px solid #b5e8d8;background:#b5e8d8;color:#183c30;font-weight:600}.chat-plan-cancel{border:1px solid var(--border);background:transparent;color:var(--text)}
+.chat-plan-review[data-result=applied]{border-color:#b5e8d866}.chat-plan-review[data-result=cancelled],.chat-plan-review[data-result=stale]{opacity:.7}
+.chat-diagnosis{padding:12px;border:1px solid var(--border);border-radius:7px;background:#102231;margin:10px 0;font-size:12px;overflow-wrap:anywhere}
+.chat-diagnosis summary{cursor:pointer;color:var(--mint);font-weight:600}
+.chat-diagnosis article{padding:10px 0;border-top:1px solid var(--border)}
+.chat-diagnosis article strong{color:#e4bd7e}.chat-diagnosis [data-diagnosis-kind=fault] strong{color:#eea99a}
+.chat-diagnosis p{line-height:1.5}.chat-diagnosis small{color:var(--muted);display:block;line-height:1.5}
+.chat-diagnosis button{background:#173346;border:1px solid #3b586a;color:var(--text);border-radius:5px;padding:7px 9px;max-width:100%;white-space:normal;text-align:left}

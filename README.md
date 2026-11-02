@@ -1,13 +1,19 @@
 <div align="center">
 
-Atualização de 31/10/2026: uma conta técnica pode alternar entre clientes com
-permissões próprias. Inclui manutenção recorrente, notificações internas
-configuráveis, checklists com evidências, fichas e intervenções offline com
-sincronização, confirmação de entregas por versão e importação com mapeamento
-de colunas e revisão de duplicados. Veja [o guia de serviços](docs/service-workflows.md).
-A raiz abre Hoje; o editor completo está em `/editor.html`. Ative contas em
-`/account` para gerir clientes. Offline requer HTTPS ou localhost e uma descarga
-prévia; os avisos são dentro do Atlas, sem envio de email.
+Atualização de 02/11/2026: a raiz é agora uma página pública que explica o Atlas.
+`/register` cria uma organização isolada e abre um mapa vazio; `/login` dá acesso
+a contas existentes; o editor mantém-se em `/editor.html` e Hoje em `/home.html`.
+O registo e a autenticação por palavra-passe funcionam no servidor Node desta
+versão; confirmação de email, recuperação de palavra-passe e SSO no alojamento
+continuam por implementar.
+
+Uma conta técnica pode alternar entre clientes com permissões próprias. Inclui
+manutenção recorrente, notificações internas configuráveis, checklists com
+evidências, fichas e intervenções offline com sincronização, confirmação de
+entregas por versão e importação com mapeamento de colunas e revisão de
+duplicados. Veja [o guia de serviços](docs/service-workflows.md).
+Administre pessoas e permissões em `/account`. Offline requer HTTPS ou localhost
+e uma descarga prévia; os avisos são dentro do Atlas, sem envio de email.
 
 
 

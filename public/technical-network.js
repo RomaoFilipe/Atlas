@@ -1,3 +1,4 @@
+import {planConnectionPoint} from './connection-anchors.js';
 import {escapeHTML as e,worldPosition} from './model.js';
 import {portsFor,portInUse,passive} from './network.js';
 
@@ -15,8 +16,17 @@ export function floorNetwork(project,floorId,roomId=''){
  const outlets=sockets.flatMap(d=>devicePorts(project,d).filter(port=>port.face==='front'));
  return {devices,links,sockets,outlets,used:outlets.filter(port=>port.link).length,racks:project.racks.filter(r=>r.floor===floorId&&(!roomId||r.room===roomId))};
 }
-export function socketPortMarkers(project,devices,geometry){
- return devices.filter(d=>d.type==='Tomada de rede').map(d=>{
+export function socketPortMarkers(project,devices,geometry,{all=false,power=false}={}){
+ return devices.filter(d=>d.type==='Tomada de rede'||all&&!['VM','Internet'].includes(d.type)).map(d=>{
+  if(all){
+   const ports=(power?['rear']:passive(d)?['front','rear']:['front']).flatMap(face=>portsFor(project,d,face)).filter(port=>power?/^(PSU[0-9]+|IN|OUT[0-9]+)$/i.test(port):! /^(PSU[0-9]+|IN|OUT[0-9]+)$/i.test(port));
+   return '<g class="manual-port-markers">'+ports.slice(0,16).map((port,index)=>{
+    const p=planConnectionPoint(project,d,port),center=worldPosition(project,d),channel=Number(port.slice(1))-1,callout=passive(d)||ports.length>1;
+    const x=callout?geometry.x(center.x)+((passive(d)?channel:index%8)-(Math.min(8,d.portCount||ports.length)-1)/2)*26:geometry.x(p.x),y=callout?geometry.y(center.z)+(port.startsWith('R')?-24:24+Math.floor(index/8)*19):geometry.y(p.z),used=portInUse(project,d.id,port);
+    const leader=callout?`<path d="M${geometry.x(p.x)} ${geometry.y(p.z)}L${x} ${y}" stroke="#759da9" stroke-width="1" pointer-events="none"/>`:'';
+    return leader+`<g data-network-device="${e(d.id)}" data-network-port="${e(port)}" role="button" tabindex="0" aria-label="${e(d.name+' / '+port)}"><title>${e(d.name+' / '+port+(used?' · ocupada':' · livre'))}</title><rect x="${x-(callout?12:6)}" y="${y-7}" width="${callout?24:12}" height="14" rx="2" fill="${used?'#a6b5c2':'#70ddba'}" stroke="#153c4b" stroke-width="1.5"/>${callout?`<text x="${x}" y="${y+3}" font-size="8" text-anchor="middle" fill="#102b38">${e(port)}</text>`:''}</g>`;
+   }).join('')+'</g>';
+  }
   const position=worldPosition(project,d),x=geometry.x(position.x),y=geometry.y(position.z)+Math.max(14,geometry.scale*.22),ports=devicePorts(project,d).filter(p=>p.face==='front'),shown=ports.slice(0,8),width=shown.length*29;
   return `<g class="socket-port-markers" aria-label="${e(d.name+' · portas RJ45')}">${shown.map((p,i)=>`<g data-network-device="${e(d.id)}" data-network-port="${e(p.port)}" role="button" tabindex="0" aria-label="${e(d.name+' / '+p.port+' · '+(p.link?'Ocupada, abrir ligação':'Livre, criar ligação'))}"><title>${e(d.name+' / '+p.port+' · '+(p.other?p.other.name+' / '+p.otherPort:'Livre'))}</title><rect x="${x-width/2+i*29}" y="${y}" width="27" height="20" rx="3" fill="${p.link?'#dfebff':'#e4f5ee'}" stroke="${p.link?'#3563c7':'#168568'}"/><text x="${x-width/2+i*29+13.5}" y="${y+14}" font-size="10" font-weight="700" text-anchor="middle" fill="#203746">${e(p.port)}</text></g>`).join('')}${ports.length>8?`<title>Mais ${ports.length-8} portas na ficha</title>`:''}</g>`;
  }).join('');

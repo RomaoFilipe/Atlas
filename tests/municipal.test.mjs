@@ -14,7 +14,8 @@ test('municipal example has a complete, editable and valid departmental inventor
  assert.equal(desks.length,24);assert.equal(phones.length,24);assert.equal(new Set(desks.map(d=>d.specs.department)).size,12);
  assert.equal(p.devices.filter(d=>d.type==='Impressora').length,12);
  assert.equal(new Set(phones.map(d=>d.specs.extension)).size,24);
- assert.deepEqual(auditProject(p),[]);
+ assert.deepEqual(auditProject(p).filter(i=>i.severity==='erro'),[]);
+ assert(auditProject(p).some(i=>i.code==='unknown-interface')); // An example inventory does not certify hardware capabilities.
  for(const d of desks){
   const phone=phones.find(t=>t.specs.workstation===d.specs.workstation),info=workstationInfo(p,d.id);
   assert(phone);assert.equal(phone.room,d.room);assert(d.specs.phone.includes(phone.specs.extension));

@@ -1,8 +1,11 @@
 # Percursos para equipas e clientes
 
-A página inicial é **Hoje** (`/` ou `/home.html`). O editor completo mantém-se em
-`/editor.html`; os QR existentes abertos na raiz passam a apresentar a ficha de
-trabalho no terreno. O namespace do projeto e a porta da etiqueta continuam a
+A página pública do produto está em `/`; o editor está em `/editor.html` e o
+resumo operacional **Hoje** em `/home.html`, acessível pelo menu Projeto.
+`/register` cria uma organização isolada, atribui o papel de administrador e
+abre um mapa vazio. `/login` autentica contas existentes. Os QR existentes na
+raiz mantêm o percurso do editor; a ficha de trabalho no terreno continua
+disponível em `/field.html`. O namespace do projeto e a porta da etiqueta continuam a
 ser verificados. Depois do login, um QR regressa à ficha pedida.
 
 As funcionalidades de vários clientes, recorrência, notificações, checklists,
@@ -50,7 +53,8 @@ Versões, histórico completo e importação/exportação cifrada ficam indispon
 para contas limitadas, pois podem conter dados de outras unidades. Podem gerar
 relatórios de entrega com os registos autorizados. A auditoria de entidades
 existentes é filtrada; eventos com referências fora do âmbito são omitidos.
-As contas e concessões por unidade pertencem ao servidor Node local; SSO e
+O registo público e as contas/concessões por unidade pertencem ao servidor Node
+desta versão. Confirmação de email, recuperação de palavra-passe, SSO e
 provisionamento de memberships no alojamento continuam fora desta versão.
 
 ## Portal do cliente

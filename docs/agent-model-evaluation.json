@@ -1,0 +1,165 @@
+{
+  "date": "2026-11-01T17:11:06.620Z",
+  "scope": "Exemplos sintéticos revistos, executados em memória. Sem chamadas ao modelo e sem alterações à instalação.",
+  "cases": [
+    {
+      "id": "nearest-complete",
+      "latencyMs": 18,
+      "passed": true,
+      "checks": {
+        "expectedAcceptance": true,
+        "verified": true,
+        "tools": true,
+        "links": true,
+        "route": true,
+        "inputUnchanged": true
+      }
+    },
+    {
+      "id": "reuse-horizontal",
+      "latencyMs": 5,
+      "passed": true,
+      "checks": {
+        "expectedAcceptance": true,
+        "verified": true,
+        "tools": true,
+        "links": true,
+        "inputUnchanged": true
+      }
+    },
+    {
+      "id": "already-complete",
+      "latencyMs": 2,
+      "passed": true,
+      "checks": {
+        "expectedAcceptance": true,
+        "verified": true,
+        "tools": true,
+        "links": true,
+        "changed": true,
+        "inputUnchanged": true
+      }
+    },
+    {
+      "id": "access-port",
+      "latencyMs": 3,
+      "passed": true,
+      "checks": {
+        "expectedAcceptance": true,
+        "verified": true,
+        "tools": true,
+        "profile": true,
+        "inputUnchanged": true
+      }
+    },
+    {
+      "id": "trunk-port",
+      "latencyMs": 3,
+      "passed": true,
+      "checks": {
+        "expectedAcceptance": true,
+        "verified": true,
+        "tools": true,
+        "profile": true,
+        "inputUnchanged": true
+      }
+    },
+    {
+      "id": "port-batch",
+      "latencyMs": 3,
+      "passed": true,
+      "checks": {
+        "expectedAcceptance": true,
+        "verified": true,
+        "tools": true,
+        "profile": true,
+        "inputUnchanged": true
+      }
+    },
+    {
+      "id": "shutdown",
+      "latencyMs": 2,
+      "passed": true,
+      "checks": {
+        "expectedAcceptance": true,
+        "verified": true,
+        "tools": true,
+        "profile": true,
+        "inputUnchanged": true
+      }
+    },
+    {
+      "id": "exact-rj45",
+      "latencyMs": 3,
+      "passed": true,
+      "checks": {
+        "expectedAcceptance": true,
+        "verified": true,
+        "tools": true,
+        "links": true,
+        "category": true,
+        "inputUnchanged": true
+      }
+    },
+    {
+      "id": "read-only",
+      "latencyMs": 2,
+      "passed": true,
+      "checks": {
+        "expectedAcceptance": true,
+        "verified": true,
+        "tools": true,
+        "changed": true,
+        "inputUnchanged": true
+      }
+    },
+    {
+      "id": "invalid-vlan",
+      "latencyMs": 1,
+      "passed": true,
+      "checks": {
+        "expectedRejection": true,
+        "inputUnchanged": true
+      },
+      "error": "VLAN de interface inexistente."
+    },
+    {
+      "id": "occupied-port",
+      "latencyMs": 2,
+      "passed": true,
+      "checks": {
+        "expectedRejection": true,
+        "inputUnchanged": true
+      },
+      "error": "Porta ocupada pelo cabo POSTO-1."
+    },
+    {
+      "id": "unknown-step",
+      "latencyMs": 6,
+      "passed": true,
+      "checks": {
+        "expectedRejection": true,
+        "inputUnchanged": true
+      },
+      "error": "Um dos passos não corresponde a um comando suportado. Nada foi aplicado. Consulta os exemplos do chat."
+    }
+  ],
+  "passed": true,
+  "realInference": {
+    "model": "qwen3:14b",
+    "status": 200,
+    "latencyMs": 17072,
+    "tools": [
+      "connect_nearest_outlet"
+    ],
+    "passed": true
+  },
+  "comparison": {
+    "initialInference": {
+      "passed": false,
+      "latencyMs": 120048,
+      "status": 504
+    },
+    "note": "Reteste com contexto reduzido; são medições pontuais, também dependentes do estado e cache do modelo. Não demonstram baixa latência em todos os pedidos."
+  }
+}

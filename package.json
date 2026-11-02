@@ -13,7 +13,8 @@
     "test:browser": "playwright test",
     "eval:assistant": "node scripts/evaluate-assistant.mjs",
     "account": "node scripts/account.mjs",
-    "bench:inventory": "node scripts/build.mjs && node scripts/benchmark-inventory.mjs"
+    "bench:inventory": "node scripts/build.mjs && node scripts/benchmark-inventory.mjs",
+    "eval:agent": "node scripts/evaluate-network-agent.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.64.1",

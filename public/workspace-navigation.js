@@ -2,7 +2,7 @@
 export const toolGroups={spaces:['spaces','mount','templates'],cables:['cables','power'],audit:['audit','simulation'],dossier:['dossier','versions'],examples:['examples']};
 export function toolGroup(tab){return Object.values(toolGroups).find(group=>group.includes(tab))||[tab];}
 export function inspectorSection(node,current='summary'){
- if(node.matches('#socketTrace,.socket-panel,.inspector-group,#stationDetails,#followCable,#manageRackPower'))return 'connections';
+ if(node.matches('#socketTrace,.socket-panel,.inspector-group,#stationDetails,#followCable,#manageRackPower,#configureInterfaces,.circuit-diagnostic'))return 'connections';
  if(node.matches('#assignSpace,#installDevice,#saveAsTemplate,#toggleRackLock,#rackCampus'))return 'location';
  if(node.matches('#equipmentRecordButton,.details,#openRack,#addInRack,#rackInterior'))return 'summary';
  if(node.tagName==='H3'){if(/Localização/.test(node.textContent))return 'location';if(/percurso|Ligações|Portas/.test(node.textContent))return 'connections';return 'summary';}

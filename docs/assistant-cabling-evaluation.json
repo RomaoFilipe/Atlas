@@ -1,0 +1,34 @@
+{
+  "date": "2026-11-01T16:20:50.507Z",
+  "scope": "Projetos sintéticos em memória; sem escrita no projeto do utilizador.",
+  "model": "qwen3:14b",
+  "deterministic": {
+    "passed": true,
+    "cases": 29
+  },
+  "correctedRequest": {
+    "id": "model-equip-room",
+    "engine": "validated-command",
+    "passed": true,
+    "latencyMs": 1,
+    "checks": {
+      "http": true,
+      "mode": true,
+      "actions": true,
+      "result": true
+    }
+  },
+  "realInference": {
+    "id": "model-build-spaces",
+    "engine": "model",
+    "passed": true,
+    "latencyMs": 40335,
+    "checks": {
+      "http": true,
+      "mode": true,
+      "actions": true,
+      "result": true
+    }
+  },
+  "limitation": "Cenários pontuais não demonstram perfeição; a inferência real ainda demora dezenas de segundos neste ambiente."
+}

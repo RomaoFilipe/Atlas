@@ -21,10 +21,10 @@ export function validate(p){if(p?.layoutLocked!==undefined&&typeof p.layoutLocke
  if(d.rack){const r=racks.get(d.rack);if(!r||r.site!==d.site)fail('O bastidor deve pertencer ao edifício do equipamento.');if(!Number.isInteger(d.u)||!Number.isInteger(d.units)||d.u<1||d.units<1||d.u+d.units-1>r.units)fail('O equipamento excede a capacidade do bastidor.');for(const other of p.devices){if(other.id!==d.id&&other.rack===d.rack&&d.u<other.u+other.units&&other.u<d.u+d.units)fail('Unidades U ocupadas por '+other.name+'.');}}
  }
  const usedPorts=new Set();for(const l of p.links){if(!devs.has(l.a)||!devs.has(l.b)||l.a===l.b)fail('Selecione dois equipamentos diferentes e existentes.');if(!['fiber','copper','virtual','power'].includes(l.kind))fail('Tipo de ligação inválido.');if(!Array.isArray(l.vlans)||l.vlans.some(n=>n!==0&&!nets.has(n)))fail('VLAN inválida na ligação.');for(const k of ['portA','portB','speed'])text(l[k]||'',k);if(l.kind!=='virtual')for(const [device,port] of [[l.a,l.portA],[l.b,l.portB]]){if(port){const key=device+'|'+port.trim().toLowerCase();if(usedPorts.has(key))fail('Porta já ligada: '+devs.get(device).name+' / '+port);usedPorts.add(key);}}}
- validateEquipmentRecords(p);validateWAN(p);validateExtras(p);return p;
+ validatePortProfiles(p);validateEquipmentRecords(p);validateWAN(p);validateExtras(p);return p;
 }
 export function worldPosition(p,d){if(d.type==='VM'&&d.host){const h=p.devices.find(x=>x.id===d.host);if(h){const b=worldPosition(p,h),i=p.devices.filter(x=>x.host===h.id).findIndex(x=>x.id===d.id);return {x:b.x+(i-1)*1.3,y:b.y+2,z:b.z+1.3};}}if(d.rack){const r=p.racks.find(x=>x.id===d.rack),s=p.sites.find(x=>x.id===r?.site);if(r&&s)return{x:s.x+r.x,y:(p.floors?.find(f=>f.id===r.floor)?.elevation||0)+.3+(d.u-1+d.units/2)*.12,z:s.z+r.z};}return{x:d.x,y:d.y+(p.floors?.find(f=>f.id===d.floor)?.elevation||0),z:d.z};}
-export function removeEntity(p,type,id){if(type==='sites'){const floorIds=(p.floors||[]).filter(f=>f.site===id).map(f=>f.id);p.floors=(p.floors||[]).filter(f=>!floorIds.includes(f.id));p.rooms=(p.rooms||[]).filter(r=>!floorIds.includes(r.floor));const rs=p.racks.filter(r=>r.site===id).map(r=>r.id);p.racks=p.racks.filter(r=>!rs.includes(r.id));for(const d of [...p.devices.filter(d=>d.site===id)])removeEntity(p,'devices',d.id);p.sites=p.sites.filter(x=>x.id!==id);}if(type==='racks'){for(const d of p.devices.filter(d=>d.rack===id)){const pos=worldPosition(p,d);pos.y-=p.floors?.find(f=>f.id===d.floor)?.elevation||0;Object.assign(d,pos);d.rack='';}p.racks=p.racks.filter(x=>x.id!==id);}if(type==='devices'){for(const vm of [...p.devices.filter(d=>d.host===id)])removeEntity(p,'devices',vm.id);p.devices=p.devices.filter(x=>x.id!==id);p.links=p.links.filter(x=>x.a!==id&&x.b!==id);}if(type==='links')p.links=p.links.filter(x=>x.id!==id);if(type==='nets'){if(p.devices.some(d=>d.vlan===id)||p.links.some(l=>l.vlans.includes(id)))throw new Error('Esta VLAN está em utilização. Altere os equipamentos e ligações antes de a eliminar.');p.nets=p.nets.filter(n=>n.id!==id);}return p;}
+export function removeEntity(p,type,id){if(type==='sites'){const floorIds=(p.floors||[]).filter(f=>f.site===id).map(f=>f.id);p.floors=(p.floors||[]).filter(f=>!floorIds.includes(f.id));p.rooms=(p.rooms||[]).filter(r=>!floorIds.includes(r.floor));const rs=p.racks.filter(r=>r.site===id).map(r=>r.id);p.racks=p.racks.filter(r=>!rs.includes(r.id));for(const d of [...p.devices.filter(d=>d.site===id)])removeEntity(p,'devices',d.id);p.sites=p.sites.filter(x=>x.id!==id);}if(type==='racks'){for(const d of p.devices.filter(d=>d.rack===id)){const pos=worldPosition(p,d);pos.y-=p.floors?.find(f=>f.id===d.floor)?.elevation||0;Object.assign(d,pos);d.rack='';}p.racks=p.racks.filter(x=>x.id!==id);}if(type==='devices'){for(const vm of [...p.devices.filter(d=>d.host===id)])removeEntity(p,'devices',vm.id);p.devices=p.devices.filter(x=>x.id!==id);p.links=p.links.filter(x=>x.a!==id&&x.b!==id);}if(type==='links')p.links=p.links.filter(x=>x.id!==id);if(type==='nets'){if(p.devices.some(d=>d.vlan===id||(d.portProfiles||[]).some(c=>c.accessVlan===id||c.nativeVlan===id||c.allowedVlans?.includes(id)))||p.links.some(l=>l.vlans.includes(id)))throw new Error('Esta VLAN está em utilização. Altere os equipamentos e ligações antes de a eliminar.');p.nets=p.nets.filter(n=>n.id!==id);}return p;}
 export function findPath(p,a,b){const q=[[a]],seen=new Set([a]);while(q.length){const path=q.shift(),last=path.at(-1);if(last===b)return path;for(const l of p.links){const n=l.a===last?l.b:l.b===last?l.a:null;if(n&&!seen.has(n)){seen.add(n);q.push([...path,n]);}}}return [];}
 
 export function moveRack(p,id,x,z){
@@ -97,4 +97,34 @@ export function validateWAN(p){
  if(typeof wan.backupOf!=='string'||wan.backupOf.length>80)fail('Circuito principal inválido.');
  if(wan.backupOf){const main=links.get(wan.backupOf);if(wan.role!=='backup'||!main||main.id===link.id||main.kind==='power'||pair(main)!==pair(link)||main.wan?.role==='backup')fail('O alternativo deve apontar para um circuito principal entre os mesmos locais.');}
  }
+}
+
+// Validated in the browser and in the bundled server; old projects need no migration.
+export function validatePortProfiles(p){
+ const rates=[0,10,100,1000,2500,5000,10000,25000,40000,100000],vlans=new Set(p.nets.map(n=>n.id));
+ const fail=message=>{throw new Error(message);};
+ for(const d of p.devices){
+  if(d.poeBudgetWatts!==undefined&&(!Number.isFinite(d.poeBudgetWatts)||d.poeBudgetWatts<0||d.poeBudgetWatts>100000))fail('Orçamento PoE inválido.');
+  if(d.portProfiles===undefined)continue;
+  if(!Array.isArray(d.portProfiles)||d.portProfiles.length>100)fail('Configurações de interfaces inválidas.');
+  if(['Patch panel','Tomada de rede','PDU','UPS','VM'].includes(d.type)&&d.portProfiles.length)fail('Configure interfaces apenas em equipamentos ativos de rede.');
+  const used=p.links.filter(l=>!['power','virtual'].includes(l.kind)&&(l.a===d.id||l.b===d.id)).map(l=>l.a===d.id?l.portA:l.portB);
+  const basic=d.portLabels?.length?d.portLabels:Array.from({length:['Computador','Posto de trabalho','Portátil','Telefone IP','Impressora','Câmara','Internet'].includes(d.type)?1:d.portCount||1},(_,i)=>d.type==='Switch'?'Gi1/0/'+(i+1):['Computador','Posto de trabalho','Portátil','Telefone IP','Impressora','Câmara'].includes(d.type)?'Ethernet'+(i+1):'P'+(i+1));
+  const known=new Set([...used,...basic].map(x=>String(x).toLowerCase())),seen=new Set();
+  for(const c of d.portProfiles){
+   if(!c||typeof c!=='object'||Array.isArray(c)||Object.keys(c).some(k=>!['port','adminUp','medium','maxSpeed','supportedSpeeds','speed','duplex','mode','accessVlan','nativeVlan','allowedVlans','poe','poeWatts','description'].includes(k)))fail('Configuração de interface inválida.');
+   if(typeof c.port!=='string'||!c.port||c.port.length>50||!known.has(c.port.toLowerCase())||seen.has(c.port.toLowerCase())||/^(PSU[0-9]+|IN|OUT[0-9]+)$/i.test(c.port))fail('Porta de interface inexistente ou repetida.');seen.add(c.port.toLowerCase());
+   if(typeof c.adminUp!=='boolean'||!['auto','copper','fiber'].includes(c.medium)||!rates.includes(c.maxSpeed)||!rates.includes(c.speed)||!['auto','full','half'].includes(c.duplex)||!['auto','access','trunk','routed'].includes(c.mode))fail('Estado, meio físico ou velocidade de interface inválidos.');
+   if(c.supportedSpeeds!==undefined&&(!Array.isArray(c.supportedSpeeds)||c.supportedSpeeds.length>rates.length-1||new Set(c.supportedSpeeds).size!==c.supportedSpeeds.length||c.supportedSpeeds.some(n=>!rates.includes(n)||n===0||(c.maxSpeed&&n>c.maxSpeed))||(c.speed&&c.supportedSpeeds.length&&!c.supportedSpeeds.includes(c.speed))))fail('Velocidades suportadas inválidas ou incompatíveis com a interface.');
+   if(c.speed&&c.maxSpeed&&c.speed>c.maxSpeed)fail('A velocidade fixa excede a capacidade da interface.');
+   if(c.duplex==='half'&&c.speed>=1000)fail('Half duplex só é suportado a 10 ou 100 Mbps.');
+   for(const key of ['accessVlan','nativeVlan'])if(!Number.isInteger(c[key])||(c[key]!==0&&!vlans.has(c[key])))fail('VLAN de interface inexistente.');
+   if(!Array.isArray(c.allowedVlans)||c.allowedVlans.length>4094||new Set(c.allowedVlans).size!==c.allowedVlans.length||c.allowedVlans.some(v=>!vlans.has(v)))fail('Lista de VLANs permitidas inválida.');
+   if(c.mode==='access'&&!c.accessVlan)fail('Escolha a VLAN da porta access.');
+   if(c.mode==='trunk'&&(!c.allowedVlans.length||(c.nativeVlan&&!c.allowedVlans.includes(c.nativeVlan))))fail('O trunk precisa de VLANs permitidas e deve incluir a VLAN nativa.');
+   if(!['unknown','off','pse','pd'].includes(c.poe)||!Number.isFinite(c.poeWatts)||c.poeWatts<0||c.poeWatts>200||(c.poe==='pse'||c.poe==='pd')&&c.poeWatts<=0)fail('Configuração de potência PoE inválida.');
+   if(typeof c.description!=='string'||c.description.length>200)fail('Descrição de interface inválida.');
+  }
+ }
+ for(const l of p.links)if(l.installation!==undefined&&!['unknown','patch','permanent'].includes(l.installation))fail('Tipo de instalação do cabo inválido.');
 }

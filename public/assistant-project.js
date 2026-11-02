@@ -1,3 +1,4 @@
+import {diagnosisAnswer} from './network-diagnosis.js';
 // Read-only answers computed in the browser. Project data never needs to leave it.
 import {equipmentResults} from './equipment-search.js';
 import {operationReport} from './operations.js';
@@ -24,6 +25,7 @@ const result=(reply,targets=[])=>({reply,targets,mode:'advice',source:'project',
 const target=d=>({type:'devices',id:d.id,label:'Abrir '+d.name});
 function locationText(project,d){return [project.sites.find(s=>s.id===d.site)?.name,project.floors.find(f=>f.id===d.floor)?.name,project.rooms.find(r=>r.id===d.room)?.name,project.racks.find(r=>r.id===d.rack)?.name].filter(Boolean).join(' → ')||'Localização por atribuir';}
 export function projectAnswer(project,state={},prompt='',{today}={}){
+ const diagnostic=diagnosisAnswer(project,state,prompt);if(diagnostic)return diagnostic;
  const text=norm(prompt).replace(/[?!.]+$/g,'').trim(),scope=scopeFor(project,state,text);
  const scopeMissing=()=>result('Abre ou seleciona '+({room:'uma sala',floor:'um piso',site:'um edifício'})[scope.kind]+' para consultar esse âmbito.');
  let match=text.match(/^(?:quantos|quantas) (equipamentos|dispositivos|computadores|impressoras|switches|servidores|tomadas|telefones|bastidores|salas|pisos|edificios|cabos|ligacoes)(?: (?:ha|existem|temos|tenho))?(?: (?:no projeto|nesta sala|na sala atual|neste piso|no piso atual|neste edificio|no edificio atual))?$/);

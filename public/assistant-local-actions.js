@@ -7,6 +7,11 @@ const norm=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,
 const unquote=value=>value.trim().replace(/^["“]|["”]$/g,'');
 const deviceTypes={'computador':'Computador','computadores':'Computador','portatil':'Portátil','portateis':'Portátil','impressora':'Impressora','impressoras':'Impressora','telefone ip':'Telefone IP','telefones ip':'Telefone IP','tomada de rede':'Tomada de rede','tomadas de rede':'Tomada de rede','switch':'Switch','switches':'Switch','mini-switch':'Mini-switch','mini-switches':'Mini-switch','servidor':'Servidor','servidores':'Servidor','patch panel':'Patch panel','patch panels':'Patch panel','pdu':'PDU','pdus':'PDU','ups':'UPS','firewall':'Firewall','firewalls':'Firewall','wi-fi':'Wi-Fi','camara':'Câmara','camaras':'Câmara','armazenamento':'Armazenamento','posto de trabalho':'Posto de trabalho','postos de trabalho':'Posto de trabalho'};
 export const configurationCommands=[
+ {label:'Agente · explicar falta de rede',prompt:'Porque é que este PC não tem rede?'},
+ {label:'Agente · ligar pela tomada mais próxima',prompt:'Liga o equipamento selecionado à rede usando a tomada mais próxima.'},
+ {label:'Agente · verificar ligações',prompt:'Verifica as ligações do equipamento selecionado.'},
+ {label:'Agente · configurar porta access',prompt:'Configura a porta "Gi1/0/1" do equipamento selecionado como access na VLAN 30.'},
+ {label:'Agente · configurar trunk',prompt:'Configura a porta "Gi1/0/24" do equipamento selecionado como trunk com VLANs 10, 20, 30 e VLAN nativa 10.'},
  {label:'Corrigir ligações em falta',prompt:'Revê esta sala e completa as ligações que faltam, usando as portas livres.'},
  {label:'Atribuir IPs sem conflitos',prompt:'Usa a rede 192.168.10.0/24, reserva o gateway .1 e atribui IPs aos computadores sem repetir endereços.'},
  {label:'Preparar filial por etapas',prompt:branchExample},
@@ -37,7 +42,7 @@ export function localConfiguration(prompt,snapshot){
  const {project,context,refs}=snapshot,createdTargets=[];
  function resolve(group,value){
   const raw=unquote(value.trim().replace(/^(?:equipamento|servidor|switch|bastidor|edif[ií]cio|piso|sala|PDU)\s+("[^"]+")$/iu,'$1')),text=norm(raw),selected=refs.get(context.selection),item=selected&&project[selected.type]?.find(x=>x.id===selected.id);let id;
-  if(/^(?:o )?(?:equipamento|servidor|bastidor|edificio|piso|sala) selecionad[oa]$/.test(text)){
+  if(group==='devices'&&/^(?:este pc|este posto|este equipamento|pc selecionado|posto selecionado)$/.test(text)&&selected?.type==='devices'){id=selected.id;}else if(/^(?:o )?(?:equipamento|servidor|bastidor|edificio|piso|sala) selecionad[oa]$/.test(text)){
    if(selected?.type===group)id=selected.id;
   }else if(/^(?:a )?sala atual$/.test(text)&&group==='rooms')id=refs.get(context.currentRoom)?.id;
   else if(/^(?:o )?piso atual$/.test(text)&&group==='floors')id=refs.get(context.currentFloor)?.id;
@@ -48,6 +53,34 @@ export function localConfiguration(prompt,snapshot){
  }
  function parseOne(raw,index){
   const text=raw.trim().replace(/[“”]/g,'"').replace(/[.!]$/,'').trim(),newRef=kind=>'new_local_'+index+'_'+kind;let m;
+  // A room name may precede the request copied from the room view.
+  m=norm(text).match(/^(?:(.+?)\s+)?nesta sala faz a configuracao da rede e das (?:fichas|tomadas),?\s+e ligar os computadores$/);
+  if(m){const room=resolve('rooms',m[1]||'sala atual');return [{action:'repair_room',room}];}
+  m=text.match(/^liga (.+?) (?:[aà] rede usando a tomada|[aà] tomada) mais pr[oó]xima(?: com (?:RJ45 )?(Cat 5e|Cat 6A|Cat 6))?$/iu);
+  if(m)return [{action:'connect_nearest_outlet',device:resolve('devices',m[1]),cable:({'cat 5e':'cat5e','cat 6':'cat6','cat 6a':'cat6a'})[norm(m[2]||'Cat 6')],complete:/[aà] rede usando/iu.test(text)}];
+  m=text.match(/^diagnostica (.+?)(?: na rede)?$/iu);if(m)return [{action:'diagnose_network',device:resolve('devices',m[1])}];
+  m=text.match(/^verifica (?:as liga[cç][oõ]es|a rede) (?:do|de) (.+)$/iu);
+  if(m)return [{action:'verify_network',device:resolve('devices',m[1])}];
+  m=text.match(/^verifica (?:as liga[cç][oõ]es|a rede) da sala (.+)$/iu);
+  if(m)return [{action:'verify_network',room:resolve('rooms',m[1]==='atual'?'sala atual':m[1])}];
+  m=text.match(/^configura a porta "([^"]+)" (?:do|de) (.+?) como access na VLAN (\d+)$/iu);
+  if(m)return [{action:'configure_interface_exact',device:resolve('devices',m[2]),port:m[1],mode:'access',accessVlan:Number(m[3])}];
+  m=text.match(/^configura a porta "([^"]+)" (?:do|de) (.+?) como trunk com VLANs ([\d, ]+)(?: e VLAN nativa (\d+))?$/iu);
+  if(m)return [{action:'configure_interface_exact',device:resolve('devices',m[2]),port:m[1],mode:'trunk',allowedVlans:m[3].trim(),nativeVlan:Number(m[4]||0)}];
+  m=text.match(/^(ativa|desativa) a porta "([^"]+)" (?:do|de) (.+)$/iu);
+  if(m)return [{action:'configure_interface_exact',device:resolve('devices',m[3]),port:m[2],adminUp:norm(m[1])==='ativa'}];
+  m=text.match(/^configura a porta "([^"]+)" (?:do|de) (.+?) para (\d+) Mbps em (full|half|auto) duplex$/iu);
+  if(m)return [{action:'configure_interface_exact',device:resolve('devices',m[2]),port:m[1],speed:Number(m[3]),duplex:norm(m[4])}];
+  m=text.match(/^define as velocidades suportadas da porta "([^"]+)" (?:do|de) (.+?) como ([\d, ]+) Mbps$/iu);
+  if(m)return [{action:'configure_interface_exact',device:resolve('devices',m[2]),port:m[1],supportedSpeeds:m[3].trim()}];
+  m=text.match(/^define a capacidade m[aá]xima da porta "([^"]+)" (?:do|de) (.+?) como (\d+) Mbps$/iu);
+  if(m)return [{action:'configure_interface_exact',device:resolve('devices',m[2]),port:m[1],maxSpeed:Number(m[3])}];
+  m=text.match(/^define o meio da porta "([^"]+)" (?:do|de) (.+?) como (cobre|fibra)$/iu);
+  if(m)return [{action:'configure_interface_exact',device:resolve('devices',m[2]),port:m[1],medium:norm(m[3])==='cobre'?'copper':'fiber'}];
+  m=text.match(/^configura a porta "([^"]+)" (?:do|de) (.+?) com PoE (PSE|PD) de (\d+(?:[.,]\d+)?) W$/iu);
+  if(m)return [{action:'configure_interface_exact',device:resolve('devices',m[2]),port:m[1],poe:norm(m[3]),poeWatts:Number(m[4].replace(',','.'))}];
+  m=text.match(/^liga a porta "([^"]+)" de (.+?) [aà] porta "([^"]+)" de (.+?) com (RJ45 Cat 5e|RJ45 Cat 6A|RJ45 Cat 6|fibra OS2|fibra OM3|alimenta[cç][aã]o)$/iu);
+  if(m)return [{action:'connect_cable_exact',a:resolve('devices',m[2]),portA:m[1],b:resolve('devices',m[4]),portB:m[3],cable:({'rj45 cat 5e':'cat5e','rj45 cat 6':'cat6','rj45 cat 6a':'cat6a','fibra os2':'os2','fibra om3':'om3','alimentacao':'power'})[norm(m[5])]}];
   m=text.match(/^(?:rev[eê] esta sala e completa as liga[cç][oõ]es que faltam, usando as portas livres|corrige as liga[cç][oõ]es em falta na sala atual)$/iu);if(m)return [{action:'repair_room',room:resolve('rooms','sala atual')}];
   m=text.match(/^usa a rede ([\d.]+\/\d{1,2}), reserva (?:o )?gateway ([\d.]+) e atribui IPs aos (computadores|equipamentos)(?: da sala (atual|"[^"]+"))?(?: a partir de ([\d.]+))? sem repetir endere[cç]os$/iu);if(m)return [{action:'assign_room_addresses',room:resolve('rooms',m[4]&&m[4]!=='atual'?m[4]:'sala atual'),subnet:m[1],gateway:m[2],scope:norm(m[3])==='computadores'?'computers':'equipment',...(m[5]?{first:m[5]}:{})}];
   const office=parseOfficeRequest(text);if(office){const {room,...options}=office;return [{action:'prepare_office',room:resolve('rooms',room),...options}];}

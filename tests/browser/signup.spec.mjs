@@ -1,0 +1,10 @@
+import {test,expect} from '@playwright/test';
+test('public home explains Atlas and signup opens a new isolated workspace map',async({page})=>{
+ await page.goto('/');await expect(page.getByRole('heading',{name:/Torna visível o que liga tudo/})).toBeVisible();await expect(page.getByRole('link',{name:'Criar mapa da minha rede'}).first()).toHaveAttribute('href','/register');await expect(page.getByRole('link',{name:'Entrar'}).first()).toHaveAttribute('href','/login');
+ await page.getByRole('button',{name:'Lógica'}).click();await expect(page.locator('[data-map-preview]')).toHaveAttribute('data-layer','logical');await expect(page.locator('[data-layer-caption]')).toHaveText('Redes e percursos lógicos documentados');
+ await page.getByRole('button',{name:'Fibra LC'}).click();for(const port of ['pc','outlet','panel','switch'])await page.locator(`[data-port-shortcut="${port}"]`).click();await expect(page.locator('[data-demo-cable]')).toHaveAttribute('d',/^M 293 267.*M 357 304.*M 482 307/);await expect(page.locator('[data-connect-status]')).toContainText('Fibra LC');await page.getByRole('button',{name:/Recomeçar/}).click();await expect(page.locator('[data-demo-cable]')).toHaveAttribute('d','');
+ await page.goto('/register');await page.getByLabel('Nome da empresa ou equipa').fill('Rede Lisboa');await page.getByLabel('Email de trabalho').fill('filipe@example.pt');await page.getByLabel('Palavra-passe',{exact:true}).fill('uma-palavra-passe-segura');await page.getByLabel('Confirmar palavra-passe').fill('uma-palavra-passe-segura');await page.getByRole('button',{name:'Criar conta e o meu mapa'}).click();
+ await expect(page).toHaveURL(/\/editor\.html\?welcome=1/);await expect(page.locator('#saveStatus')).toContainText('primeiro edifício');
+ const session=await(await page.request.get('/api/session')).json();expect(session).toMatchObject({actor:'filipe@example.pt',role:'admin',organization:'rede-lisboa'});const project=await(await page.request.get('/api/project')).json();expect(project.project).toBeNull();expect(project.revision).toBe(0);
+ await page.reload();await expect(page.locator('#saveStatus')).toContainText('primeiro edifício');
+});
