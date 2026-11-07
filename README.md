@@ -106,6 +106,13 @@ Pode mudar a porta com `PORT=3001 npm start` e a pasta com `ATLAS_DATA_DIR=/cami
 Copie toda a pasta de dados, incluindo as chaves, para conservar uma instalação local.
 Os dados do Docker e do arranque direto são independentes.
 
+**Utilizadores locais em SQLite:** `/register` cria a organização e a primeira
+conta administradora; `/account` permite gerir a equipa depois de iniciar sessão.
+As contas e permissões ficam em `.atlas-local/atlas.sqlite`, com palavras-passe
+protegidas por scrypt. Instalações anteriores importam `accounts.json`
+automaticamente, preservando-o como cópia anterior. Veja [a gestão de contas
+locais](docs/organization.md).
+
 Este é um modo para uma pessoa, sem login. O Docker publica a aplicação apenas
 em **http://localhost:3000** por predefinição. O arranque direto com `npm start`
 também está limitado a localhost por predefinição. A publicação na rede exige

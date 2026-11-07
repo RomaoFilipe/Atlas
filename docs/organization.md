@@ -103,9 +103,29 @@ unset ATLAS_ACCOUNT_PASSWORD
 npm run account -- list
 ```
 
-A variável é apenas lida pelo comando; não é escrita no `.env`. O ficheiro
-`accounts.json` fica na pasta de dados, com permissões restritas. Guarde essa
-pasta, a base SQLite, os anexos e o keyring nos backups. Contas locais não são
+A variável é apenas lida pelo comando; não é escrita no `.env`. Os utilizadores
+locais ficam em `.atlas-local/atlas.sqlite`, ou na pasta definida por
+`ATLAS_DATA_DIR`. A mesma base SQLite guarda os projetos. As tabelas
+`atlas_local_users` e `atlas_local_memberships` guardam as contas, os hashes de
+palavra-passe e as permissões por organização; `atlas_local_auth` regista a
+ativação e a migração. Não é necessário instalar um servidor de base de dados
+nem o comando `sqlite3`: o Node usa SQLite 3 através de `node:sqlite`.
+
+No primeiro arranque desta versão, as contas de `accounts.json` são importadas
+numa transação, mantendo utilizadores, hashes, organizações e unidades. O JSON
+fica intacto como cópia anterior e deixa de receber alterações. Um marcador
+impede voltar a importar contas antigas em arranques posteriores. Um ficheiro
+inválido interrompe o arranque, sem ativar acesso anónimo como alternativa.
+
+Crie uma organização e o seu administrador em `/register`. Para acrescentar
+utilizadores à organização existente, entre como administrador e abra `/account`,
+ou use o comando acima com o código da organização. `npm run account -- list`
+mostra contas e permissões, sem palavras-passe. As sessões continuam em memória;
+reiniciar o servidor exige novo login.
+
+Guarde a pasta de dados, a base SQLite, os anexos e o keyring nos backups.
+Pare o servidor antes de copiar os ficheiros SQLite, ou use um backup consistente
+de SQLite que inclua os dados ainda no WAL. Contas locais não são
 SSO empresarial. O administrador já pode atribuir acesso apenas a unidades
 selecionadas; veja [os percursos de clientes](customer-workflows.md). A aplicação alojada mantém a
 identidade autenticada fornecida pelo alojamento; esta gestão de contas pertence

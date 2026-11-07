@@ -2,11 +2,11 @@
 import {escapeHTML as e} from './model.js';
 import {floorFootprint} from './move-alignment.js';
 const rect=(x,z,w,h,fill,rx=.025)=>`<rect x="${x}" y="${z}" width="${w}" height="${h}" rx="${rx}" fill="${fill}"/>`;
-const monitor=x=>rect(x-.36,-.22,.72,.075,'#25485e')+rect(x-.12,-.18,.24,.17,'#7297a5');
-const keyboard=(x=-.395,z=.12)=>rect(x,z,.55,.2,'#405e70')+`<path d="M${x+.04} ${z+.07}h.47m-.47 .06h.47" stroke="#aec5d0"/>`;
+const monitor=x=>rect(x-.36,-.35,.72,.25,'#25485e',.025)+rect(x-.325,-.325,.65,.19,'#152f42',.015)+`<path d="M${x-.29} -.16q.22-.2 .56-.05" stroke="#79c4c1" stroke-width=".018" fill="none"/>`+rect(x-.025,-.10,.05,.09,'#7297a5')+rect(x-.12,-.02,.24,.035,'#7297a5');
+const keyboard=(x=-.395,z=.12)=>rect(x,z,.55,.2,'#405e70',.02)+`<path d="M${x+.04} ${z+.07}h.47m-.47 .06h.47" stroke="#aec5d0" stroke-width=".009"/><path d="M${x+.1} ${z+.03}v.12m.08-.12v.12m.08-.12v.12m.08-.12v.12m.08-.12v.12" stroke="#aec5d0" stroke-width=".009"/>`;
 export function equipmentDrawing(d){
  const type=d.type;
- if(type==='Posto de trabalho')return rect(-.925,-.475,1.85,.95,'#e7cba0',.07)+`<path d="M-.82 -.36H.82" stroke="#c5a578"/>`+((d.monitors||1)>1?monitor(-.4)+monitor(.4):monitor(0))+keyboard()+rect(.305,.13,.09,.14,'#8ba6b4',.04)+rect(-.375,.5,.75,.7,'#6e8e9e',.12)+rect(-.375,1.115,.75,.09,'#35556c',.035);
+ if(type==='Posto de trabalho')return rect(-.925,-.475,1.85,.95,'#e7cba0',.07)+`<path d="M-.82 -.36H.82" stroke="#c5a578"/>`+((d.monitors||1)>1?monitor(-.4)+monitor(.4):monitor(0))+keyboard()+rect(.305,.13,.09,.14,'#8ba6b4',.04)+rect(-.375,.5,.75,.7,'#6e8e9e',.12)+rect(-.375,1.115,.75,.09,'#35556c',.035)+rect(-.45,.64,.07,.3,'#35556c',.025)+rect(.38,.64,.07,.3,'#35556c',.025);
  if(type==='Computador')return monitor(0)+keyboard(-.3,.19)+rect(.44,-.2,.22,.4,'#3c576b');
  if(type==='Portátil')return rect(-.36,-.1,.72,.48,'#aabfc9',.04)+rect(-.34,-.103,.68,.055,'#294d65')+keyboard(-.275,.02)+rect(-.1,.27,.2,.08,'#d6e3e8');
  if(type==='Impressora')return rect(-.35,-.3,.7,.6,'#b4cbd5',.05)+rect(-.29,-.25,.58,.36,'#e3edf1')+rect(-.23,.24,.46,.07,'#35556c')+rect(-.215,.31,.43,.2,'white')+rect(.065,.08,.19,.1,'#468a99');
@@ -21,7 +21,8 @@ export function equipmentDrawing(d){
 }
 export function equipmentBounds(d,x,y,scale){const b=floorFootprint({...d,x:0,z:0});return{x:x+b.minX*scale,y:y+b.minZ*scale,w:(b.maxX-b.minX)*scale,h:(b.maxZ-b.minZ)*scale};}
 export function planEquipment(d,x,y,scale,{selected=false,warning=false,type='devices',active=true}={}){
- return `<g data-plan-type="${type}" data-plan-id="${e(d.id)}" tabindex="0" role="button" aria-label="${e(d.name+' · '+d.type)}" opacity="${active?1:.2}" class="plan-equipment"><title>${e(d.name+' · '+d.type+' · '+(d.ip||'Sem IP')+' · '+(d.rotation||0)+'°')}</title><g transform="translate(${x} ${y}) rotate(${-(d.rotation||0)}) scale(${scale})" stroke="${warning?'#c64e32':selected?'#008773':'#44657a'}" stroke-width=".022" stroke-linejoin="round">${selected||warning?'<circle r="1.15" fill="none" stroke-dasharray=".1 .07" stroke-width=".035"/>':''}<circle r=".32" fill="none" stroke="none" pointer-events="all"/>${d.type==='Posto de trabalho'?'<g transform="scale('+((d.deskWidth||1.85)/1.85)+' '+((d.deskDepth||.95)/.95)+')">'+equipmentDrawing(d)+'</g>':equipmentDrawing(d)}</g></g>`;
+ const b=floorFootprint({...d,rotation:0,x:0,z:0}),frame=selected?`<rect class="plan-selection-frame" x="${b.minX-.08}" y="${b.minZ-.08}" width="${b.maxX-b.minX+.16}" height="${b.maxZ-b.minZ+.16}" rx=".04" fill="none"/>`+[[b.minX-.08,b.minZ-.08],[b.maxX+.08,b.minZ-.08],[b.minX-.08,b.maxZ+.08],[b.maxX+.08,b.maxZ+.08]].map(([x,z])=>`<rect class="plan-selection-handle" x="${x-.045}" y="${z-.045}" width=".09" height=".09" fill="#078773"/>`).join(''):'';
+ return `<g data-plan-type="${type}" data-plan-id="${e(d.id)}" tabindex="0" role="button" aria-label="${e(d.name+' · '+d.type)}" opacity="${active?1:.2}" class="plan-equipment" data-selected="${selected}"><title>${e(d.name+' · '+d.type+' · '+(d.ip||'Sem IP')+' · '+(d.rotation||0)+'°')}</title><g transform="translate(${x} ${y}) rotate(${-(d.rotation||0)}) scale(${scale})" stroke="${warning?'#c64e32':selected?'#008773':'#44657a'}" stroke-width=".022" stroke-linejoin="round">${warning?'<circle r="1.15" fill="none" stroke-dasharray=".1 .07" stroke-width=".035"/>':''}<circle r=".32" fill="none" stroke="none" pointer-events="all"/>${frame}${d.type==='Posto de trabalho'?'<g transform="scale('+((d.deskWidth||1.85)/1.85)+' '+((d.deskDepth||.95)/.95)+')">'+equipmentDrawing(d)+'</g>':equipmentDrawing(d)}</g></g>`;
 }
 // Names may move or be omitted when crowded; equipment never moves to fit a label.
 export function equipmentLabels(items,occupied,bounds){
@@ -32,7 +33,7 @@ export function equipmentLabels(items,occupied,bounds){
   const candidates=[{x:i.x-w/2,y:b.y+b.h+6,w,h},{x:i.x-w/2,y:b.y-h-6,w,h},{x:b.x+b.w+6,y:i.y-h/2,w,h},{x:b.x-w-6,y:i.y-h/2,w,h}];
   const area=i.bounds||bounds;
   const box=candidates.find(a=>a.x>=area.x&&a.y>=area.y&&a.x+w<=area.x+area.w&&a.y+h<=area.y+area.h&&!used.some(b=>hits(a,b)));
-  if(!box)continue;used.push(box);result.push(`<g class="plan-object-name" pointer-events="none"><rect x="${box.x}" y="${box.y}" width="${w}" height="${h}" rx="4" fill="${i.selected?'#def4ec':'#ffffff'}" fill-opacity=".92"/><text x="${box.x+w/2}" y="${box.y+14}" text-anchor="middle" font-size="12" fill="#315368">${e(name)}</text></g>`);
+  if(!box)continue;used.push(box);result.push(`<g class="plan-object-name" data-selected="${i.selected}" pointer-events="none"><rect x="${box.x}" y="${box.y}" width="${w}" height="${h}" rx="4" fill="${i.selected?'#def4ec':'#ffffff'}" fill-opacity=".92"/><text x="${box.x+w/2}" y="${box.y+14}" text-anchor="middle" font-size="12" fill="#315368">${e(name)}</text></g>`);
  }
  return result.join('');
 }

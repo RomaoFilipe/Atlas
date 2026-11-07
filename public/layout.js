@@ -1,3 +1,4 @@
+import {initEditorDesign} from './editor-design.js';
 import {initWorkspaceShell} from './workspace-shell.js';
 import {initWorkspaceNavigation} from './workspace-navigation.js';
 // Move existing controls so their handlers and data remain intact.
@@ -40,7 +41,8 @@ export function initLayout(app){
  const newBuilding=document.createElement('button');newBuilding.id='sidebarCreateBuilding';newBuilding.className='primary';newBuilding.textContent='＋ Criar edifício';$('#primaryNavigation').after(newBuilding);newBuilding.onclick=()=>app.edit('sites');
  const caption=document.createElement('p');caption.className='workspace-subtitle';caption.id='workspaceSubtitle';$('#viewTitle').after(caption);
  const shell=initWorkspaceShell(app);
- return {showMap:()=>navigation.showMap(),onSelection(){if(narrow()){body.classList.remove('open-navigation');body.classList.add('open-selection');}else body.classList.remove('hide-selection');sync();},afterRender(){
+ const design=initEditorDesign(app);
+ return {decoratePlan:()=>design.decoratePlan(),afterFeatures:()=>design.finish(),showMap:()=>navigation.showMap(),onSelection(){if(narrow()){body.classList.remove('open-navigation');if(['devices','racks','links'].includes(app.get().selected.type))body.classList.add('open-selection');}else body.classList.remove('hide-selection');sync();},afterRender(){
   // Rack actions appear only when inspecting that view; the inspector holds campus rack actions.
   if($('#mapView').value!=='rack')$('#rackControls').hidden=true;
   $('#mapEditSelection').disabled=!$('#editSelected');
@@ -49,6 +51,6 @@ export function initLayout(app){
    const section=document.createElement('details');section.className='inspector-group';const summary=document.createElement('summary');summary.textContent=heading.textContent;section.append(summary);heading.before(section);let sibling=heading.nextElementSibling;heading.remove();
    while(sibling&&(sibling.matches('.connection,.port-face-controls,.port-grid,[data-follow-circuit],#configurePorts')||(heading.textContent.startsWith('Portas ·')&&sibling.matches('p.notice')))){const next=sibling.nextElementSibling;section.append(sibling);sibling=next;}
   }
-  navigation.afterRender();shell.refresh();const mode=app.get().mode;body.dataset.view=mode;$('#workspaceSubtitle').textContent=body.dataset.workspace==='inventory'?'Encontre equipamentos e abra a respetiva localização.':mode==='physical'?'Explore os edifícios e selecione um objeto para consultar os detalhes.':mode==='plan'?'Organize salas, equipamentos e percursos de rede.':mode==='rack'?'Consulte a instalação e as portas do bastidor.':'Consulte a organização das redes e as suas ligações';
+  navigation.afterRender();shell.refresh();design.refresh();const mode=app.get().mode;body.dataset.view=mode;$('#workspaceSubtitle').textContent=body.dataset.workspace==='inventory'?'Encontre equipamentos e abra a respetiva localização.':mode==='physical'?'Explore os edifícios e selecione um objeto para consultar os detalhes.':mode==='plan'?'Organize salas, equipamentos e percursos de rede.':mode==='rack'?'Consulte a instalação e as portas do bastidor.':'Consulte a organização das redes e as suas ligações';
  }};
 }

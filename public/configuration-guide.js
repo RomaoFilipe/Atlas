@@ -29,7 +29,7 @@ export function initConfigurationGuide({get,actions}){
  let initialized=false;
  guide.addEventListener('click',event=>{const button=event.target.closest('[data-guide-action]');if(button&&!button.disabled)actions[button.dataset.guideAction]();});
  return {render(){const {project,ready}=get(),steps=cachedSteps(project),current=steps.find(step=>!step.done),complete=!current;
- if(!initialized&&ready){guide.open=!project.exampleKey&&!complete;initialized=true;}
+ if(!initialized&&ready){guide.open=false;initialized=true;}
  guide.querySelector('[data-guide-progress]').textContent=steps.filter(step=>step.done).length+' de '+steps.length+' etapas';
  guide.querySelector('[data-guide-summary]').textContent=ready?(current?.title.slice(3)||'Sem pendências nas verificações disponíveis'):'A carregar…';
  guide.querySelector('[data-guide-next]').textContent=ready?(current?.next||'Sem pendências nas verificações disponíveis. Pode rever o projeto ou continuar a adicionar espaços e equipamentos.'):'A carregar o projeto…';

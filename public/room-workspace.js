@@ -26,7 +26,7 @@ export function initRoomWorkspace(app,{form,input,select,scope,openRoom,openFloo
  const p=app.get().project,proposal=(p.connectionProposals||[])[0],device=p.devices.find(d=>d.id===proposal?.a);
  const target=p.rooms.find(r=>r.id===device?.room)||p.rooms.find(r=>roomTasks(p,r.id).length);
  if(!target){cableForm();return;}
- openRoom(target.id);render();root.classList.add('guided-connections');const tasks=root.querySelector('.room-tasks');if(tasks){tasks.open=true;tasks.scrollIntoView({behavior:'smooth',block:'center'});tasks.querySelector('button')?.focus();}
+ openRoom(target.id);render();root.classList.add('guided-connections');const disclosure=root.closest('#editorRoomDetails');if(disclosure)disclosure.open=true;const tasks=root.querySelector('.room-tasks');if(tasks){tasks.open=true;tasks.scrollIntoView({behavior:'smooth',block:'center'});tasks.querySelector('button')?.focus();}
  }
  return {render,quick,directActions,guideConnections,copyRoom};
 }
